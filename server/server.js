@@ -34,7 +34,7 @@ const auth = require("./auth");
 const isMongoSetupComplete = true;
 if (isMongoSetupComplete) {
   const mongoConnectionURL = process.env.ATLAS_SRV;
-  const databaseName = "bartschi-finances";
+  const databaseName = "bartschi-budget";
 
   // connect to mongodb
   mongoose
@@ -58,7 +58,7 @@ app.use(bodyParser.json());
 // set up a session, which will persist login data across requests
 app.use(
   session({
-    secret: "session-secret",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
   })
