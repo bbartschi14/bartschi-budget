@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Button, Space, Group, TextInput, NumberInput, Select } from "@mantine/core";
+import { Button, Space, Group, TextInput, NumberInput, Select, Divider } from "@mantine/core";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { get, post } from "../utilities";
-import { DataTable } from "mantine-datatable";
+import { DataTable, DataTableSortStatus } from "mantine-datatable";
+import sortBy from "lodash/sortBy";
 import { NotificationsProvider, showNotification } from "@mantine/notifications";
 import AppWrapper from "./modules/AppWapper";
 import { v4 as uuidv4 } from "uuid";
 import dayjs from "dayjs";
 import { DatePicker } from "@mantine/dates";
 import { IconCurrencyDollar, IconAtom2 } from "@tabler/icons";
+import CategoryItem from "./modules/CategoryItem";
+import DateItem from "./modules/DateItem";
 
 type TransactionType = {
   _id?: string;
@@ -16,19 +19,72 @@ type TransactionType = {
   name: string;
   category: number;
   amount: number;
-  date: string;
+  date: Date;
 };
+
+const lightness = 95;
+const darkerLightness = 40;
+
+export const categories: CategoryType[] = [
+  {
+    value: "0",
+    label: "Dining",
+    color: `hsl(163, 86%, ${lightness}%)`,
+    darkColor: `hsl(163, 86%, ${darkerLightness}%)`,
+  },
+  {
+    value: "1",
+    label: "Groceries",
+    color: `hsl(214, 86%, ${lightness}%)`,
+    darkColor: `hsl(214, 86%, ${darkerLightness}%)`,
+  },
+  {
+    value: "2",
+    label: "Transportation",
+    color: `hsl(246, 86%, ${lightness}%)`,
+    darkColor: `hsl(246, 86%, ${darkerLightness}%)`,
+  },
+  {
+    value: "3",
+    label: "Donations",
+    color: `hsl(13, 86%, ${lightness}%)`,
+    darkColor: `hsl(13, 86%, ${darkerLightness}%)`,
+  },
+];
 
 const App = () => {
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [amount, setAmount] = useState(0);
   const [date, onDateChange] = useState(new Date());
-  const [category, setCategory] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>("0");
   const [name, setName] = useState("");
+
+  const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
+    columnAccessor: "date",
+    direction: "asc",
+  });
+
+  const reSort = () => {
+    if (sortStatus) {
+      const data = sortBy(transactions, sortStatus.columnAccessor);
+      setTransactions(sortStatus.direction === "desc" ? data.reverse() : data);
+    }
+  };
+  useEffect(() => {
+    reSort();
+  }, [sortStatus]);
+
+  useEffect(() => {
+    reSort();
+  }, [transactions]);
 
   const refreshTransactions = () => {
     get("api/transactions", {}).then((transactions) => {
-      setTransactions(transactions);
+      setTransactions(
+        transactions.map((t) => {
+          return Object.assign(t, { date: new Date(t.date), category: t.category.toString() });
+        })
+      );
       console.log(transactions);
     });
   };
@@ -66,21 +122,27 @@ const App = () => {
                     onChange={setCategory}
                     searchable
                     clearable
-                    data={[
-                      { value: "0", label: "Dining" },
-                      { value: "1", label: "Groceries" },
-                      { value: "2", label: "Transportation" },
-                      { value: "3", label: "Donations" },
-                    ]}
-                    styles={{ input: { backgroundColor: "#F5F5F5", fontWeight: 600 } }}
-                    icon={<IconAtom2 size={14} />}
+                    data={categories.map((c) => {
+                      return { value: c.value, label: c.label };
+                    })}
+                    styles={{
+                      input: {
+                        backgroundColor: categories.find((c) => c.value == category)?.color,
+                      },
+                    }}
+                    icon={
+                      <IconAtom2
+                        size={14}
+                        color={categories.find((c) => c.value == category)?.darkColor}
+                      />
+                    }
                   />
                   <DatePicker
                     value={date}
                     onChange={onDateChange}
                     allowFreeInput
                     placeholder="Pick date"
-                    label="Event date"
+                    label="Date"
                   />
                   <Button
                     onClick={() => {
@@ -89,10 +151,17 @@ const App = () => {
                         amount: amount,
                         uuid: uuidv4(),
                         category: parseInt(category),
-                        date: date.toDateString(),
+                        date: date,
                       };
-                      console.log("Adding transaction: ", transaction);
-                      post("/api/transaction", transaction).then((res) =>
+                      let transactionTranslated: TransactionType = {
+                        name: name,
+                        amount: amount,
+                        uuid: uuidv4(),
+                        category: parseInt(category), // @ts-ignore
+                        date: date.toLocaleDateString(),
+                      };
+                      console.log("Adding transaction: ", transactionTranslated);
+                      post("/api/transaction", transactionTranslated).then((res) =>
                         console.log("Add success!")
                       );
                       setTransactions((prev) => [...prev, transaction]);
@@ -101,10 +170,12 @@ const App = () => {
                     Post!
                   </Button>
                 </Group>
-
-                <Space h={"lg"}></Space>
+                <Divider my="md" variant="dashed" />
+                {/* <Space h={"lg"}></Space> */}
                 <div>
                   <DataTable
+                    sortStatus={sortStatus}
+                    onSortStatusChange={setSortStatus}
                     minHeight={transactions.length > 0 ? 0 : 200}
                     withBorder
                     borderRadius="sm"
@@ -114,10 +185,20 @@ const App = () => {
                     noRecordsText="No transactions yet!"
                     records={transactions}
                     columns={[
-                      { accessor: "name" },
-                      { accessor: "amount" },
-                      { accessor: "category" },
-                      { accessor: "date" },
+                      { accessor: "name", sortable: true },
+                      { accessor: "amount", title: "Amount ($)", sortable: true },
+                      {
+                        accessor: "category",
+                        sortable: true,
+                        render: ({ category }) => (
+                          <CategoryItem category={category.toString()}></CategoryItem>
+                        ),
+                      },
+                      {
+                        accessor: "date",
+                        sortable: true,
+                        render: ({ date }) => <DateItem date={date}></DateItem>,
+                      },
                     ]}
                     idAccessor={"uuid"}
                     rowContextMenu={{

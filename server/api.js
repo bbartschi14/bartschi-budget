@@ -26,7 +26,7 @@ router.post("/transaction", (req, res) => {
     category: req.body.category,
     date: req.body.date,
   });
-
+  console.log(newTransaction);
   newTransaction.save().then((transaction) => res.send(transaction));
 });
 
