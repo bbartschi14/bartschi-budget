@@ -15,6 +15,31 @@ const auth = require("./auth");
 // api endpoints: all these paths will be prefixed with "/api/"
 const router = express.Router();
 
+// MongoDB Models
+const Transaction = require("./models/transaction");
+
+router.post("/transaction", (req, res) => {
+  const newTransaction = new Transaction({
+    uuid: req.body.uuid,
+    name: req.body.name,
+    amount: req.body.amount,
+    category: req.body.category,
+    date: req.body.date,
+  });
+
+  newTransaction.save().then((transaction) => res.send(transaction));
+});
+
+router.get("/transactions", (req, res) => {
+  Transaction.find({}).then((transactions) => {
+    res.send(transactions);
+  });
+});
+
+router.post("/transactions/delete", (req, res) => {
+  Transaction.deleteOne({ uuid: req.body.uuid }).then((things) => res.send(things));
+});
+
 // anything else falls to this "not found" case
 router.all("*", (req, res) => {
   console.log(`API route not found: ${req.method} ${req.url}`);

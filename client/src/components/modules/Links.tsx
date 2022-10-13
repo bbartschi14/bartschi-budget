@@ -41,8 +41,8 @@ function MainLink({ icon, color, label, link }: MainLinkProps) {
 
 const data = [
   { icon: <IconGitPullRequest size={16} />, color: "blue", label: "Home", link: "/" },
-  { icon: <IconAlertCircle size={16} />, color: "teal", label: "First", link: "/first" },
-  { icon: <IconMessages size={16} />, color: "violet", label: "Second", link: "/second" },
+  // { icon: <IconAlertCircle size={16} />, color: "teal", label: "First", link: "/first" },
+  // { icon: <IconMessages size={16} />, color: "violet", label: "Second", link: "/second" },
 ];
 
 export function MainLinks() {
