@@ -1,6 +1,6 @@
 import { Center, Paper, Text } from "@mantine/core";
 import React from "react";
-import { categories } from "../App";
+import { categories } from "../Budget";
 
 type CategoryItemProps = {
   category: string;

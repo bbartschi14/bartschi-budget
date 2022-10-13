@@ -11,6 +11,7 @@ const express = require("express");
 
 // import authentication library
 const auth = require("./auth");
+require("dotenv").config();
 
 // api endpoints: all these paths will be prefixed with "/api/"
 const router = express.Router();
@@ -38,6 +39,10 @@ router.get("/transactions", (req, res) => {
 
 router.post("/transactions/delete", (req, res) => {
   Transaction.deleteOne({ uuid: req.body.uuid }).then((things) => res.send(things));
+});
+
+router.post("/enter", (req, res) => {
+  res.send(req.body.password == process.env.BUDGET_PASSWORD);
 });
 
 // anything else falls to this "not found" case
