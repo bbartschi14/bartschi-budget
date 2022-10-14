@@ -6,13 +6,14 @@ import { get } from "../../utilities";
 export const unassignedCategory: CategoryType = {
   uuid: "none",
   name: "Unassigned",
-  color: "white",
+  color: "gray",
   monthlyBudget: 0,
 };
 
 export const initialCategoriesValues = {
   categories: [],
   addCategory: (newCategory: CategoryType) => {},
+  updateCategory: (newCategory: CategoryType) => {},
 };
 
 export const CategoriesContext = createContext(initialCategoriesValues);
@@ -28,6 +29,14 @@ export const CategoriesProvider: React.FC<CategoriesProviderProps> = ({ children
     setCategories([...categories, newCategory]);
   };
 
+  const updateCategory = (newCategory: CategoryType) => {
+    setCategories(
+      categories.map((c) => {
+        return c.uuid === newCategory.uuid ? newCategory : c;
+      })
+    );
+  };
+
   useEffect(() => {
     get("api/categories", {}).then((categories) => {
       setCategories(categories);
@@ -35,7 +44,7 @@ export const CategoriesProvider: React.FC<CategoriesProviderProps> = ({ children
   }, []);
 
   return (
-    <CategoriesContext.Provider value={{ categories, addCategory }}>
+    <CategoriesContext.Provider value={{ categories, addCategory, updateCategory }}>
       {children}
     </CategoriesContext.Provider>
   );

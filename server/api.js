@@ -42,7 +42,7 @@ router.post("/transactions/delete", (req, res) => {
   Transaction.deleteOne({ uuid: req.body.uuid }).then((things) => res.send(things));
 });
 
-router.post("/category", (req, res) => {
+router.post("/category/add", (req, res) => {
   const newCategory = new Category({
     uuid: req.body.uuid,
     name: req.body.name,
@@ -50,6 +50,15 @@ router.post("/category", (req, res) => {
     color: req.body.color,
   });
   newCategory.save().then((category) => res.send(category));
+});
+
+router.post("/category/update", (req, res) => {
+  Category.findOne({ uuid: req.body.uuid }).then((category) => {
+    category.name = req.body.name;
+    category.monthlyBudget = req.body.monthlyBudget;
+    category.color = req.body.color;
+    category.save().then((c) => res.send(c));
+  });
 });
 
 router.get("/categories", (req, res) => {

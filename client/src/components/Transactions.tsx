@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from "react";
 import AppWrapper from "./modules/AppWapper";
 import { v4 as uuidv4 } from "uuid";
-import dayjs from "dayjs";
 import { DatePicker } from "@mantine/dates";
 import { IconCurrencyDollar, IconAtom2 } from "@tabler/icons";
 import CategoryItem from "./modules/CategoryItem";
 import DateItem from "./modules/DateItem";
-import { useLocalStorage } from "@mantine/hooks";
-import { get, post } from "../utilities";
+import { post } from "../utilities";
 import { DataTable, DataTableSortStatus } from "mantine-datatable";
 import sortBy from "lodash/sortBy";
 import {
   Button,
-  Space,
   Group,
   TextInput,
   NumberInput,
@@ -20,44 +17,31 @@ import {
   Divider,
   Tabs,
   Stack,
+  useMantineTheme,
+  Text,
+  Table,
+  Center,
 } from "@mantine/core";
 import { useStateCallback } from "use-state-callback";
-import { CategoriesProvider } from "./modules/CategoriesContext";
 import { useCategories, unassignedCategory } from "./modules/CategoriesContext";
 import Budget from "./pages/Budget";
-
-// const lightness = 95;
-// const darkerLightness = 40;
-
-// export const categories: CategoryType[] = [
-//   {
-//     value: "0",
-//     label: "Dining",
-//     color: `hsl(163, 86%, ${lightness}%)`,
-//     darkColor: `hsl(163, 86%, ${darkerLightness}%)`,
-//   },
-//   {
-//     value: "1",
-//     label: "Groceries",
-//     color: `hsl(214, 86%, ${lightness}%)`,
-//     darkColor: `hsl(214, 86%, ${darkerLightness}%)`,
-//   },
-//   {
-//     value: "2",
-//     label: "Transportation",
-//     color: `hsl(246, 86%, ${lightness}%)`,
-//     darkColor: `hsl(246, 86%, ${darkerLightness}%)`,
-//   },
-//   {
-//     value: "3",
-//     label: "Donations",
-//     color: `hsl(13, 86%, ${lightness}%)`,
-//     darkColor: `hsl(13, 86%, ${darkerLightness}%)`,
-//   },
-// ];
+import { useTransactions } from "./modules/TransactionsContext";
 
 const Transactions = () => {
-  const [transactions, setTransactions] = useStateCallback<TransactionType[]>([]);
+  const theme = useMantineTheme();
+
+  const getCSSColor = (color: string) => {
+    if (!color) return "";
+    let splitColor = color.split(".");
+    return color in theme.colors || splitColor[0] in theme.colors
+      ? splitColor.length > 1 && splitColor[1] in theme.colors[splitColor[0]]
+        ? theme.colors[splitColor[0]][splitColor[1]]
+        : theme.colors[color]
+      : color;
+  };
+
+  const { budgetMonth, transactions, setTransactions, fetching, totals } = useTransactions();
+  const [localTransactions, setLocalTransactions] = useStateCallback<TransactionType[]>([]);
   const [amount, setAmount] = useState(0);
   const [date, onDateChange] = useState(new Date());
   const [category, setCategory] = useState<string | null>(unassignedCategory.uuid);
@@ -73,30 +57,35 @@ const Transactions = () => {
   const reSort = (updatedTransactions) => {
     if (sortStatus) {
       const data = sortBy(updatedTransactions, sortStatus.columnAccessor);
-      setTransactions(sortStatus.direction === "desc" ? data.reverse() : data, (newState) => {});
+      setLocalTransactions(
+        sortStatus.direction === "desc" ? data.reverse() : data,
+        (newState) => {}
+      );
     }
   };
 
   useEffect(() => {
     reSort(transactions);
-  }, [sortStatus]);
+  }, [sortStatus, transactions]);
 
-  const refreshTransactions = () => {
-    get("api/transactions", {}).then((transactions) => {
-      setTransactions(
-        transactions.map((t) => {
-          return Object.assign(t, { date: new Date(t.date), category: t.category });
-        }),
-        (updatedTransactions) => {
-          reSort(updatedTransactions);
-        }
-      );
-    });
+  const postTransactionForm = () => {
+    let transaction: TransactionType = {
+      name: name,
+      amount: amount,
+      uuid: uuidv4(),
+      category: category,
+      date: date,
+    };
+    let transactionTranslated: TransactionType = {
+      name: name,
+      amount: amount,
+      uuid: uuidv4(),
+      category: category, // @ts-ignore
+      date: date.toLocaleDateString(),
+    };
+    post("/api/transaction", transactionTranslated).then((res) => {});
+    setTransactions((prev) => [...prev, transaction]);
   };
-
-  useEffect(() => {
-    refreshTransactions();
-  }, []);
 
   return (
     <AppWrapper selectedTab={tab} setTab={setTab}>
@@ -109,6 +98,9 @@ const Transactions = () => {
                 label="Description"
                 value={name}
                 onChange={(event) => setName(event.currentTarget.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") postTransactionForm();
+                }}
               />
               <NumberInput
                 label="Amount"
@@ -117,32 +109,44 @@ const Transactions = () => {
                 hideControls
                 precision={2}
                 icon={<IconCurrencyDollar size={18} />}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") postTransactionForm();
+                }}
               />
               <Select
                 label="Category"
                 value={category}
                 onChange={setCategory}
                 searchable
-                clearable
                 data={
                   categories.length > 0
-                    ? categories.map((c) => {
-                        return { value: c.uuid, label: c.name };
-                      })
+                    ? [
+                        { value: unassignedCategory.uuid, label: unassignedCategory.name },
+                        ...categories.map((c) => {
+                          return { value: c.uuid, label: c.name };
+                        }),
+                      ]
                     : [{ value: unassignedCategory.uuid, label: unassignedCategory.name }]
                 }
                 styles={{
                   input: {
                     backgroundColor:
                       categories.length > 0
-                        ? categories.find((c) => c.uuid == category)?.color
+                        ? theme.fn.lighten(
+                            getCSSColor(categories.find((c) => c.uuid == category)?.color),
+                            0.9
+                          )
                         : "",
                   },
                 }}
                 icon={
                   <IconAtom2
                     size={14}
-                    color={categories ? categories.find((c) => c.uuid == category)?.color : ""}
+                    color={
+                      categories
+                        ? getCSSColor(categories.find((c) => c.uuid == category)?.color)
+                        : ""
+                    }
                   />
                 }
               />
@@ -152,31 +156,13 @@ const Transactions = () => {
                 allowFreeInput
                 placeholder="Pick date"
                 label="Date"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") postTransactionForm();
+                }}
               />
               <Button
                 onClick={() => {
-                  let transaction: TransactionType = {
-                    name: name,
-                    amount: amount,
-                    uuid: uuidv4(),
-                    category: category,
-                    date: date,
-                  };
-                  let transactionTranslated: TransactionType = {
-                    name: name,
-                    amount: amount,
-                    uuid: uuidv4(),
-                    category: category, // @ts-ignore
-                    date: date.toLocaleDateString(),
-                  };
-                  // console.log("Adding transaction: ", transactionTranslated);
-                  post("/api/transaction", transactionTranslated).then((res) => {});
-                  setTransactions(
-                    (prev) => [...prev, transaction],
-                    (updatedTransactions) => {
-                      reSort(updatedTransactions);
-                    }
-                  );
+                  postTransactionForm();
                 }}
               >
                 Post!
@@ -185,25 +171,41 @@ const Transactions = () => {
             <Divider my="md" variant="dashed" />
             <div>
               <DataTable
+                fetching={fetching}
                 sortStatus={sortStatus}
                 onSortStatusChange={setSortStatus}
-                minHeight={transactions.length > 0 ? 0 : 200}
+                minHeight={localTransactions.length > 0 ? 0 : 200}
                 withBorder
                 borderRadius="sm"
                 withColumnBorders
                 striped
                 highlightOnHover
                 noRecordsText="No transactions yet!"
-                records={transactions}
+                records={localTransactions}
                 columns={[
-                  { accessor: "name", sortable: true },
-                  { accessor: "amount", title: "Amount ($)", sortable: true },
+                  { accessor: "name", sortable: true, width: 200, textAlignment: "right" },
                   {
+                    width: 140,
+                    accessor: "amount",
+                    title: "Amount ($)",
+                    sortable: true,
+                    render: ({ amount }) => (
+                      <Text>
+                        {amount.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        })}
+                      </Text>
+                    ),
+                  },
+                  {
+                    width: 160,
                     accessor: "category",
                     sortable: true,
                     render: ({ category }) => <CategoryItem categoryId={category}></CategoryItem>,
                   },
                   {
+                    width: 140,
                     accessor: "date",
                     sortable: true,
                     render: ({ date }) => <DateItem date={date}></DateItem>,
@@ -230,6 +232,83 @@ const Transactions = () => {
                 }}
               />
             </div>
+            <Center inline>
+              <Table
+                highlightOnHover
+                striped
+                withColumnBorders
+                withBorder
+                sx={(theme) => ({
+                  display: "inline-block",
+                  width: "inherit",
+                })}
+              >
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th style={{ width: "100px", textAlign: "center" }}>Spent</th>
+                    <th style={{ width: "100px", textAlign: "center" }}>Remaining</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <Text size={"xl"} weight={"bold"} align={"right"}>
+                        {"Monthly Total"}
+                      </Text>
+                    </td>
+                    <td style={{ width: "100px", textAlign: "center" }}>
+                      {totals.total.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      })}
+                    </td>
+                    <td
+                      style={{
+                        width: "100px",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                        color:
+                          totals.totalRemaining > 0 ? theme.colors.green[7] : theme.colors.red[7],
+                      }}
+                    >
+                      {totals.totalRemaining.toLocaleString("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      })}
+                    </td>
+                  </tr>
+                  {totals.categories.map((c) => {
+                    return (
+                      <tr key={c.uuid}>
+                        <td style={{ textAlign: "right" }}>
+                          <CategoryItem categoryId={c.uuid}></CategoryItem>
+                        </td>
+                        <td style={{ width: "100px", textAlign: "center" }}>
+                          {c.total.toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                          })}
+                        </td>
+                        <td
+                          style={{
+                            width: "100px",
+                            textAlign: "center",
+                            fontWeight: "bold",
+                            color: c.remaining > 0 ? theme.colors.green[7] : theme.colors.red[6],
+                          }}
+                        >
+                          {c.remaining.toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                          })}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </Center>
           </Stack>
         </Tabs.Panel>
         <Tabs.Panel value={"1"}>

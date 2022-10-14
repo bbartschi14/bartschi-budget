@@ -1,6 +1,8 @@
 import React from "react";
 import { MantineProvider, Text, AppShell, Header as MantineHeader, Navbar } from "@mantine/core";
 import { MainLinks } from "./Links";
+import MonthSelector from "./MonthSelector";
+import { useTransactions } from "./TransactionsContext";
 
 type AppWrapperProps = {
   children: React.ReactNode;
@@ -9,6 +11,8 @@ type AppWrapperProps = {
 };
 
 const AppWrapper: React.FC<AppWrapperProps> = ({ children, selectedTab, setTab }) => {
+  const { budgetMonth, setBudgetMonth } = useTransactions();
+
   return (
     <MantineProvider withGlobalStyles withNormalizeCSS>
       <AppShell
@@ -25,6 +29,7 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children, selectedTab, setTab }
               }}
             >
               <Text>Bartschi Budget</Text> {/*@ts-ignore}*/}
+              <MonthSelector value={budgetMonth} setValue={setBudgetMonth} />
               <MainLinks selectedTab={selectedTab} setTab={setTab} />
             </div>
           </MantineHeader>

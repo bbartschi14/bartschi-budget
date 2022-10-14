@@ -1,4 +1,4 @@
-import { Center, Paper, Text } from "@mantine/core";
+import { Badge, Center, Paper, Text } from "@mantine/core";
 import React, { useState, useEffect } from "react";
 import { useCategories, unassignedCategory } from "./CategoriesContext";
 
@@ -19,16 +19,14 @@ const CategoryItem = (props: CategoryItemProps) => {
 
   return (
     <Center>
-      <Paper
-        style={{
-          backgroundColor: categoryData.color,
-          borderRadius: "6px",
-          padding: "6px 12px",
-        }}
-        shadow="xs"
+      <Badge
+        color={categoryData.color}
+        size="md"
+        styles={{ root: { boxShadow: "#CCCCCC 1px 1px 2px" } }}
+        variant="light"
       >
-        <Text align="center">{categoryData.name}</Text>
-      </Paper>
+        {categoryData.name}
+      </Badge>
     </Center>
   );
 };
