@@ -7,24 +7,26 @@ interface MainLinkProps {
   icon: React.ReactNode;
   color: string;
   label: string;
-  link: string;
+  isSelected: boolean;
+  setTab: any;
+  index: number;
 }
 
-function MainLink({ icon, color, label, link }: MainLinkProps) {
+function MainLink({ icon, color, label, isSelected, setTab, index }: MainLinkProps) {
   return (
     <UnstyledButton
-      component={Link}
-      to={link}
+      onClick={() => setTab(index)}
       sx={(theme) => ({
-        display: "block",
-        width: "100%",
         padding: theme.spacing.xs,
         borderRadius: theme.radius.sm,
         color: theme.colorScheme === "dark" ? theme.colors.dark[0] : theme.black,
-
+        backgroundColor: isSelected ? theme.colors.blue[0] : "",
         "&:hover": {
-          backgroundColor:
-            theme.colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.gray[0],
+          backgroundColor: isSelected
+            ? theme.colors.blue[1]
+            : theme.colorScheme === "dark"
+            ? theme.colors.dark[6]
+            : theme.colors.gray[0],
         },
       })}
     >
@@ -40,12 +42,22 @@ function MainLink({ icon, color, label, link }: MainLinkProps) {
 }
 
 const data = [
-  { icon: <IconGitPullRequest size={16} />, color: "blue", label: "Home", link: "/" },
-  // { icon: <IconAlertCircle size={16} />, color: "teal", label: "First", link: "/first" },
-  // { icon: <IconMessages size={16} />, color: "violet", label: "Second", link: "/second" },
+  { icon: <IconGitPullRequest size={16} />, color: "blue", label: "Transactions" },
+  { icon: <IconAlertCircle size={16} />, color: "blue", label: "Budget" },
 ];
 
-export function MainLinks() {
-  const links = data.map((link) => <MainLink {...link} key={link.label} />);
-  return <div>{links}</div>;
-}
+export const MainLinks = (props) => {
+  return (
+    <Group spacing={"xs"}>
+      {data.map((link, i) => (
+        <MainLink
+          index={i}
+          {...link}
+          key={link.label}
+          isSelected={props.selectedTab == i}
+          setTab={props.setTab}
+        />
+      ))}
+    </Group>
+  );
+};

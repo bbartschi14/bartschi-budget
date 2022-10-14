@@ -4,7 +4,7 @@ const TransactionSchema = new mongoose.Schema({
   uuid: String,
   name: String,
   amount: Number,
-  category: Number,
+  category: String,
   date: String,
 });
 

@@ -18,6 +18,7 @@ const router = express.Router();
 
 // MongoDB Models
 const Transaction = require("./models/transaction");
+const Category = require("./models/category");
 
 router.post("/transaction", (req, res) => {
   const newTransaction = new Transaction({
@@ -39,6 +40,22 @@ router.get("/transactions", (req, res) => {
 
 router.post("/transactions/delete", (req, res) => {
   Transaction.deleteOne({ uuid: req.body.uuid }).then((things) => res.send(things));
+});
+
+router.post("/category", (req, res) => {
+  const newCategory = new Category({
+    uuid: req.body.uuid,
+    name: req.body.name,
+    monthlyBudget: req.body.monthlyBudget,
+    color: req.body.color,
+  });
+  newCategory.save().then((category) => res.send(category));
+});
+
+router.get("/categories", (req, res) => {
+  Category.find({}).then((categories) => {
+    res.send(categories);
+  });
 });
 
 router.post("/enter", (req, res) => {

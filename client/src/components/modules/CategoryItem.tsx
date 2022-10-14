@@ -1,23 +1,33 @@
 import { Center, Paper, Text } from "@mantine/core";
-import React from "react";
-import { categories } from "../Budget";
+import React, { useState, useEffect } from "react";
+import { useCategories, unassignedCategory } from "./CategoriesContext";
 
 type CategoryItemProps = {
-  category: string;
+  categoryId: string;
 };
 
 const CategoryItem = (props: CategoryItemProps) => {
+  const { categories } = useCategories();
+  const [categoryData, setCategoryData] = useState<CategoryType>(unassignedCategory);
+
+  useEffect(() => {
+    let foundCategory = categories.find((c) => c.uuid == props.categoryId);
+    if (foundCategory !== undefined) {
+      setCategoryData(foundCategory);
+    }
+  }, [categories]);
+
   return (
     <Center>
       <Paper
         style={{
-          backgroundColor: categories.find((c) => c.value == props.category).color,
+          backgroundColor: categoryData.color,
           borderRadius: "6px",
           padding: "6px 12px",
         }}
         shadow="xs"
       >
-        <Text align="center">{categories.find((c) => c.value == props.category).label}</Text>
+        <Text align="center">{categoryData.name}</Text>
       </Paper>
     </Center>
   );
