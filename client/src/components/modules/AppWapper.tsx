@@ -3,6 +3,7 @@ import { MantineProvider, Text, AppShell, Header as MantineHeader, Navbar } from
 import { MainLinks } from "./Links";
 import MonthSelector from "./MonthSelector";
 import { useTransactions } from "./TransactionsContext";
+import TotalsTable from "./TotalsTable";
 
 type AppWrapperProps = {
   children: React.ReactNode;
@@ -17,6 +18,13 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children, selectedTab, setTab }
     <MantineProvider withGlobalStyles withNormalizeCSS>
       <AppShell
         padding="md"
+        navbar={
+          <Navbar width={{ base: 400 }} p="sm">
+            <Navbar.Section>
+              <TotalsTable></TotalsTable>
+            </Navbar.Section>
+          </Navbar>
+        }
         header={
           <MantineHeader height={70} p="md">
             <div
@@ -28,7 +36,10 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children, selectedTab, setTab }
                 justifyContent: "space-between",
               }}
             >
-              <Text>Bartschi Budget</Text> {/*@ts-ignore}*/}
+              <Text color={"blue"} weight={"bold"}>
+                Bartschi Budget
+              </Text>{" "}
+              {/*@ts-ignore}*/}
               <MonthSelector value={budgetMonth} setValue={setBudgetMonth} />
               <MainLinks selectedTab={selectedTab} setTab={setTab} />
             </div>

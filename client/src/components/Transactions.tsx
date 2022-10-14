@@ -2,7 +2,14 @@ import React, { useEffect, useState } from "react";
 import AppWrapper from "./modules/AppWapper";
 import { v4 as uuidv4 } from "uuid";
 import { DatePicker } from "@mantine/dates";
-import { IconCurrencyDollar, IconAtom2 } from "@tabler/icons";
+import {
+  IconCurrencyDollar,
+  IconAtom2,
+  IconTrash,
+  IconCopy,
+  IconChevronDown,
+  IconChevronUp,
+} from "@tabler/icons";
 import CategoryItem from "./modules/CategoryItem";
 import DateItem from "./modules/DateItem";
 import { post } from "../utilities";
@@ -21,11 +28,17 @@ import {
   Text,
   Table,
   Center,
+  Paper,
+  Container,
+  ScrollArea,
+  ActionIcon,
+  Tooltip,
 } from "@mantine/core";
 import { useStateCallback } from "use-state-callback";
 import { useCategories, unassignedCategory } from "./modules/CategoriesContext";
 import Budget from "./pages/Budget";
 import { useTransactions } from "./modules/TransactionsContext";
+import { useWindowEvent } from "@mantine/hooks";
 
 const Transactions = () => {
   const theme = useMantineTheme();
@@ -48,7 +61,7 @@ const Transactions = () => {
   const [name, setName] = useState("");
   const [tab, setTab] = useState(0);
   const { categories } = useCategories();
-
+  const [collapsed, setCollapsed] = useState<boolean>(true);
   const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
     columnAccessor: "date",
     direction: "asc",
@@ -87,6 +100,12 @@ const Transactions = () => {
     setTransactions((prev) => [...prev, transaction]);
   };
 
+  useWindowEvent("keydown", (event) => {
+    if (event.code === "KeyM") {
+      setCollapsed((collapsed) => !collapsed);
+    }
+  });
+
   return (
     <AppWrapper selectedTab={tab} setTab={setTab}>
       <Tabs value={tab.toString()}>
@@ -99,6 +118,7 @@ const Transactions = () => {
                 value={name}
                 onChange={(event) => setName(event.currentTarget.value)}
                 onKeyDown={(event) => {
+                  event.stopPropagation();
                   if (event.key === "Enter") postTransactionForm();
                 }}
               />
@@ -165,10 +185,10 @@ const Transactions = () => {
                   postTransactionForm();
                 }}
               >
-                Post!
+                Add Entry!
               </Button>
             </Group>
-            <Divider my="md" variant="dashed" />
+            <Divider my="sm" variant="dashed" />
             <div>
               <DataTable
                 fetching={fetching}
@@ -213,11 +233,23 @@ const Transactions = () => {
                 ]}
                 idAccessor={"uuid"}
                 rowContextMenu={{
-                  items: (transaction) => [
+                  items: (transaction: TransactionType) => [
                     {
+                      icon: <IconCopy size={14} />,
+                      key: "copy",
+                      title: `Copy details`,
+                      onClick: () => {
+                        setName(transaction.name);
+                        setAmount(transaction.amount);
+                        setCategory(transaction.category);
+                        onDateChange(transaction.date);
+                      },
+                    },
+                    {
+                      icon: <IconTrash size={14} />,
                       key: "delete",
                       color: "red", // @ts-ignore
-                      title: `Delete transaction ${transaction.name}`,
+                      title: `Delete transaction`,
                       onClick: () => {
                         post("/api/transactions/delete", transaction).then((res) => {
                           console.log("Delete success!");
@@ -232,84 +264,108 @@ const Transactions = () => {
                 }}
               />
             </div>
-            <Center inline>
-              <Table
-                highlightOnHover
-                striped
-                withColumnBorders
-                withBorder
-                sx={(theme) => ({
-                  display: "inline-block",
-                  width: "inherit",
-                })}
-              >
-                <thead>
-                  <tr>
-                    <th></th>
-                    <th style={{ width: "100px", textAlign: "center" }}>Spent</th>
-                    <th style={{ width: "100px", textAlign: "center" }}>Remaining</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <Text size={"xl"} weight={"bold"} align={"right"}>
-                        {"Monthly Total"}
-                      </Text>
-                    </td>
-                    <td style={{ width: "100px", textAlign: "center" }}>
-                      {totals.total.toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      })}
-                    </td>
-                    <td
-                      style={{
-                        width: "100px",
-                        textAlign: "center",
-                        fontWeight: "bold",
-                        color:
-                          totals.totalRemaining > 0 ? theme.colors.green[7] : theme.colors.red[7],
-                      }}
-                    >
-                      {totals.totalRemaining.toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      })}
-                    </td>
-                  </tr>
-                  {totals.categories.map((c) => {
-                    return (
-                      <tr key={c.uuid}>
-                        <td style={{ textAlign: "right" }}>
-                          <CategoryItem categoryId={c.uuid}></CategoryItem>
-                        </td>
-                        <td style={{ width: "100px", textAlign: "center" }}>
-                          {c.total.toLocaleString("en-US", {
-                            style: "currency",
-                            currency: "USD",
-                          })}
-                        </td>
-                        <td
-                          style={{
-                            width: "100px",
-                            textAlign: "center",
-                            fontWeight: "bold",
-                            color: c.remaining > 0 ? theme.colors.green[7] : theme.colors.red[6],
-                          }}
-                        >
-                          {c.remaining.toLocaleString("en-US", {
-                            style: "currency",
-                            currency: "USD",
-                          })}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </Table>
-            </Center>
+            <div style={{ height: "300px" }}></div>
           </Stack>
+          {/* <Center inline style={{ position: "fixed", left: 0, bottom: 0 }}>
+            <Container px="4px">
+              <Paper>
+                <Tooltip label={collapsed ? "Expand [M]" : "Collapse [M]mm"} color={"gray"}>
+                  <ActionIcon
+                    color={"blue"}
+                    style={{ position: "absolute", right: "-28px", bottom: "6px" }}
+                    variant="outline"
+                    onClick={() => {
+                      setCollapsed((collapsed) => !collapsed);
+                    }}
+                  >
+                    {collapsed ? <IconChevronUp size={18} /> : <IconChevronDown size={14} />}
+                  </ActionIcon>
+                </Tooltip>
+                <Table
+                  highlightOnHover
+                  striped
+                  withColumnBorders
+                  withBorder
+                  sx={(theme) => ({
+                    display: "inline-block",
+                    width: "inherit",
+                    boxShadow: "#CCCCCCCC 1px 6px 8px",
+                  })}
+                >
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th style={{ width: "100px", textAlign: "center" }}>Spent</th>
+                      <th style={{ width: "100px", textAlign: "center" }}>Remaining</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <Text size={"xl"} weight={"bold"} align={"right"}>
+                          {"Monthly Total"}
+                        </Text>
+                      </td>
+                      <td style={{ width: "100px", textAlign: "center" }}>
+                        {totals.total.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        })}
+                      </td>
+                      <td
+                        style={{
+                          width: "100px",
+                          fontSize: theme.fontSizes.xl,
+                          textAlign: "center",
+                          fontWeight: "bold",
+                          color:
+                            totals.totalRemaining > 0 ? theme.colors.green[7] : theme.colors.red[7],
+                        }}
+                      >
+                        {totals.totalRemaining.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        })}
+                      </td>
+                    </tr>
+                    {!collapsed ? (
+                      totals.categories.map((c) => {
+                        return (
+                          <tr key={c.uuid}>
+                            <td style={{ textAlign: "right" }}>
+                              <CategoryItem categoryId={c.uuid}></CategoryItem>
+                            </td>
+                            <td style={{ width: "100px", textAlign: "center" }}>
+                              {c.total.toLocaleString("en-US", {
+                                style: "currency",
+                                currency: "USD",
+                              })}
+                            </td>
+                            <td
+                              style={{
+                                width: "100px",
+                                textAlign: "center",
+                                fontWeight: "bold",
+                                color:
+                                  c.remaining > 0 ? theme.colors.green[7] : theme.colors.red[6],
+                              }}
+                            >
+                              {c.remaining.toLocaleString("en-US", {
+                                style: "currency",
+                                currency: "USD",
+                              })}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <></>
+                    )}
+                  </tbody>
+                </Table>
+              </Paper>
+            </Container>
+          </Center> */}
         </Tabs.Panel>
         <Tabs.Panel value={"1"}>
           <Stack>
