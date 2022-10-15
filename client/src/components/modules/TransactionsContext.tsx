@@ -10,6 +10,7 @@ export const initialTransactionsValues = {
   setBudgetMonth: (_) => {},
   transactions: [],
   setTransactions: (_) => {},
+  addTransaction: (newTransaction: TransactionType) => {},
   fetching: true,
   totals: { categories: [], totalPerType: new Map(), totalRemainingPerType: new Map() },
   categoryType: "Monthly",
@@ -54,6 +55,12 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
         )
       );
     });
+  };
+
+  const addTransaction = (newTransaction: TransactionType) => {
+    if (categories.find((c) => c.uuid === newTransaction.category)?.type == categoryType) {
+      setTransactions((prev) => [...prev, newTransaction]);
+    }
   };
 
   useEffect(() => {
@@ -124,6 +131,7 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
         totals,
         categoryType,
         setCategoryType,
+        addTransaction,
       }}
     >
       {children}

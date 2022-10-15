@@ -7,8 +7,8 @@ import {
   IconAtom2,
   IconTrash,
   IconCopy,
-  IconChevronDown,
-  IconChevronUp,
+  IconChevronLeft,
+  IconChevronRight,
 } from "@tabler/icons";
 import CategoryItem from "./modules/CategoryItem";
 import DateItem from "./modules/DateItem";
@@ -26,19 +26,15 @@ import {
   Stack,
   useMantineTheme,
   Text,
-  Table,
-  Center,
-  Paper,
-  Container,
-  ScrollArea,
   ActionIcon,
-  Tooltip,
+  NumberInputHandlers,
 } from "@mantine/core";
 import { useStateCallback } from "use-state-callback";
 import { useCategories, unassignedCategory } from "./modules/CategoriesContext";
 import Budget from "./pages/Budget";
 import { useTransactions } from "./modules/TransactionsContext";
 import { useWindowEvent } from "@mantine/hooks";
+import dayjs from "dayjs";
 
 const Transactions = () => {
   const theme = useMantineTheme();
@@ -53,11 +49,15 @@ const Transactions = () => {
       : color;
   };
 
-  const { budgetMonth, transactions, setTransactions, fetching, totals } = useTransactions();
+  const { budgetMonth, transactions, setTransactions, fetching, totals, addTransaction } =
+    useTransactions();
   const [localTransactions, setLocalTransactions] = useStateCallback<TransactionType[]>([]);
   const [amount, setAmount] = useState(0);
   const [date, onDateChange] = useState(new Date());
   const [category, setCategory] = useState<string | null>(unassignedCategory.uuid);
+  const [dayOfMonth, setDayOfMonth] = useState(new Date().getDate());
+  const handlers = useRef<NumberInputHandlers>();
+
   const [name, setName] = useStateCallback("");
   const [tab, setTab] = useState(0);
   const { categories } = useCategories();
@@ -104,7 +104,7 @@ const Transactions = () => {
       date: date.toLocaleDateString(),
     };
     post("/api/transaction", transactionTranslated).then((res) => {});
-    setTransactions((prev) => [...prev, transaction]);
+    addTransaction(transaction);
     descriptionInput.current.select();
   };
 
@@ -113,6 +113,10 @@ const Transactions = () => {
       setCollapsed((collapsed) => !collapsed);
     }
   });
+
+  useEffect(() => {
+    onDateChange(new Date(budgetMonth.year, budgetMonth.month, dayOfMonth));
+  }, [dayOfMonth]);
 
   return (
     <AppWrapper selectedTab={tab} setTab={setTab}>
@@ -179,16 +183,73 @@ const Transactions = () => {
                   />
                 }
               />
-              <DatePicker
+              {/* <DatePicker
                 value={date}
                 onChange={onDateChange}
-                allowFreeInput
                 placeholder="Pick date"
                 label="Date"
+                allowFreeInput
                 onKeyDown={(event) => {
-                  if (event.key === "Enter") postTransactionForm();
+                  if (event.key === "Enter") {
+                    postTransactionForm();
+                  } else if (event.key === "ArrowLeft") {
+                    let prevDay = dayjs(date).add(-1, "day");
+                    onDateChange(prevDay.toDate());
+                  } else if (event.key === "ArrowRight") {
+                    let nextDay = dayjs(date).add(1, "day");
+                    onDateChange(nextDay.toDate());
+                  }
                 }}
-              />
+              /> */}
+              <Group noWrap={true} spacing={2} align={"flex-end"}>
+                <ActionIcon
+                  tabIndex={-1}
+                  sx={(theme) => ({ height: "36px" })}
+                  size={20}
+                  variant="default"
+                  onClick={() => handlers.current.decrement()}
+                >
+                  <IconChevronLeft size={14} />
+                </ActionIcon>
+                <NumberInput
+                  label={"Day"}
+                  description={
+                    "(" +
+                    (date.getMonth() + 1) +
+                    "/" +
+                    date.getDate() +
+                    "/" +
+                    date.getFullYear() +
+                    ")"
+                  }
+                  value={dayOfMonth}
+                  onChange={(val) => {
+                    setDayOfMonth(val);
+                  }}
+                  hideControls
+                  handlersRef={handlers}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      postTransactionForm();
+                    }
+                  }}
+                  styles={(theme) => ({
+                    input: {
+                      textAlign: "center",
+                    },
+                  })}
+                />
+                <ActionIcon
+                  tabIndex={-1}
+                  sx={(theme) => ({ height: "36px" })}
+                  size={20}
+                  variant="default"
+                  onClick={() => handlers.current.increment()}
+                >
+                  <IconChevronRight size={14} />
+                </ActionIcon>
+              </Group>
+
               <Button
                 onClick={() => {
                   postTransactionForm();
