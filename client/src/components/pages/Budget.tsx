@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 import { post } from "../../utilities";
 import { useCategories } from "../modules/CategoriesContext";
 import CategoryCard from "../modules/CategoryCard";
+import { useTransactions } from "../modules/TransactionsContext";
 
 type CategoryEditState = {
   isEditing: boolean;
@@ -31,6 +32,7 @@ type CategoryDeleteState = {
 const Budget = () => {
   const { categories, addCategory, updateCategory, budgetTotalPerType, removeCategory } =
     useCategories();
+  const { categoryType } = useTransactions();
   const [name, setName] = useState("");
   const [color, setColor] = useState("blue.9");
   const [monthlyBudget, setMonthlyBudget] = useState(0);
@@ -219,16 +221,18 @@ const Budget = () => {
         </Modal>
       </Group>
       <Group noWrap={false}>
-        {categories.map((c) => {
-          return (
-            <CategoryCard
-              category={c}
-              key={c.uuid}
-              setEditState={setEditState}
-              setDeleteState={setDeleteState}
-            ></CategoryCard>
-          );
-        })}
+        {categories
+          .filter((c) => c.type === categoryType)
+          .map((c) => {
+            return (
+              <CategoryCard
+                category={c}
+                key={c.uuid}
+                setEditState={setEditState}
+                setDeleteState={setDeleteState}
+              ></CategoryCard>
+            );
+          })}
       </Group>
       <Button size={"md"} onClick={() => setOpened(true)} sx={(theme) => ({ alignSelf: "center" })}>
         Create Category
