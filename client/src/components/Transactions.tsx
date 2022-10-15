@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import AppWrapper from "./modules/AppWapper";
 import { v4 as uuidv4 } from "uuid";
 import { DatePicker } from "@mantine/dates";
@@ -58,7 +58,7 @@ const Transactions = () => {
   const [amount, setAmount] = useState(0);
   const [date, onDateChange] = useState(new Date());
   const [category, setCategory] = useState<string | null>(unassignedCategory.uuid);
-  const [name, setName] = useState("");
+  const [name, setName] = useStateCallback("");
   const [tab, setTab] = useState(0);
   const { categories } = useCategories();
   const [collapsed, setCollapsed] = useState<boolean>(true);
@@ -66,6 +66,8 @@ const Transactions = () => {
     columnAccessor: "date",
     direction: "asc",
   });
+
+  const descriptionInput = useRef<HTMLInputElement>();
 
   const reSort = (updatedTransactions) => {
     if (sortStatus) {
@@ -78,6 +80,11 @@ const Transactions = () => {
   };
 
   useEffect(() => {
+    console.log("Locals updated");
+  }, [localTransactions]);
+
+  useEffect(() => {
+    console.log("RESORTING Transactions: ", categories);
     reSort(transactions);
   }, [sortStatus, transactions]);
 
@@ -98,6 +105,7 @@ const Transactions = () => {
     };
     post("/api/transaction", transactionTranslated).then((res) => {});
     setTransactions((prev) => [...prev, transaction]);
+    descriptionInput.current.select();
   };
 
   useWindowEvent("keydown", (event) => {
@@ -116,11 +124,12 @@ const Transactions = () => {
                 placeholder="Enter description"
                 label="Description"
                 value={name}
-                onChange={(event) => setName(event.currentTarget.value)}
+                onChange={(event) => setName(event.currentTarget.value, () => {})}
                 onKeyDown={(event) => {
                   event.stopPropagation();
                   if (event.key === "Enter") postTransactionForm();
                 }}
+                ref={descriptionInput}
               />
               <NumberInput
                 label="Amount"
@@ -239,7 +248,9 @@ const Transactions = () => {
                       key: "copy",
                       title: `Copy details`,
                       onClick: () => {
-                        setName(transaction.name);
+                        setName(transaction.name, () => {
+                          descriptionInput.current.select();
+                        });
                         setAmount(transaction.amount);
                         setCategory(transaction.category);
                         onDateChange(transaction.date);

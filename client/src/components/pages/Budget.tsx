@@ -11,8 +11,9 @@ import {
   Anchor,
   SegmentedControl,
   Text,
+  Select,
 } from "@mantine/core";
-import { IconCurrencyDollar, IconAtom2 } from "@tabler/icons";
+import { IconCurrencyDollar, IconAtom2, IconTrash } from "@tabler/icons";
 import { v4 as uuidv4 } from "uuid";
 import { post } from "../../utilities";
 import { useCategories } from "../modules/CategoriesContext";
@@ -22,8 +23,14 @@ type CategoryEditState = {
   isEditing: boolean;
   category: CategoryType;
 };
+type CategoryDeleteState = {
+  isDeleting: boolean;
+  category: CategoryType;
+  sendToCategory: CategoryType;
+};
 const Budget = () => {
-  const { categories, addCategory, updateCategory, budgetTotalPerType } = useCategories();
+  const { categories, addCategory, updateCategory, budgetTotalPerType, removeCategory } =
+    useCategories();
   const [name, setName] = useState("");
   const [color, setColor] = useState("blue.9");
   const [monthlyBudget, setMonthlyBudget] = useState(0);
@@ -32,6 +39,11 @@ const Budget = () => {
   const [editState, setEditState] = useState<CategoryEditState>({
     isEditing: false,
     category: null,
+  });
+  const [deleteState, setDeleteState] = useState<CategoryDeleteState>({
+    isDeleting: false,
+    category: null,
+    sendToCategory: null,
   });
 
   useEffect(() => {
@@ -56,6 +68,13 @@ const Budget = () => {
     post("/api/category/update", category).then((res) => {
       updateCategory(res);
     });
+  };
+
+  const setDeleteNewCategory = (newCategoryUUID: string) => {
+    setDeleteState((prevState) => ({
+      ...prevState,
+      sendToCategory: categories.find((c) => c.uuid === newCategoryUUID),
+    }));
   };
 
   return (
@@ -144,6 +163,7 @@ const Budget = () => {
                 };
                 if (editState.isEditing) {
                   updateExisting(newCategory);
+                  setEditState({ isEditing: false, category: null });
                 } else {
                   addNew(newCategory);
                 }
@@ -154,11 +174,59 @@ const Budget = () => {
             </Button>
           </Stack>
         </Modal>
+        <Modal
+          opened={deleteState.isDeleting}
+          onClose={() => {
+            if (deleteState.isDeleting) {
+              setDeleteState({ isDeleting: false, category: null, sendToCategory: null });
+            }
+          }}
+          title={"Deleting Category: " + deleteState.category?.name}
+        >
+          <Stack>
+            <Select
+              label="Move transactions to:"
+              value={deleteState.sendToCategory?.uuid}
+              onChange={setDeleteNewCategory}
+              searchable
+              data={[
+                ...categories
+                  .filter((c) => c.uuid !== deleteState.category?.uuid)
+                  .map((c) => {
+                    return { value: c.uuid, label: c.name };
+                  }),
+              ]}
+            />
+            <Button
+              color={"red"}
+              leftIcon={<IconTrash size={14} />}
+              disabled={deleteState.sendToCategory == null}
+              onClick={() => {
+                post("api/category/delete", {
+                  uuidToDelete: deleteState.category.uuid,
+                  uuidToReplace: deleteState.sendToCategory.uuid,
+                }).then((res) => {
+                  removeCategory(deleteState.category);
+                });
+                if (deleteState.isDeleting) {
+                  setDeleteState({ isDeleting: false, category: null, sendToCategory: null });
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </Stack>
+        </Modal>
       </Group>
       <Group noWrap={false}>
         {categories.map((c) => {
           return (
-            <CategoryCard category={c} key={c.uuid} setEditState={setEditState}></CategoryCard>
+            <CategoryCard
+              category={c}
+              key={c.uuid}
+              setEditState={setEditState}
+              setDeleteState={setDeleteState}
+            ></CategoryCard>
           );
         })}
       </Group>

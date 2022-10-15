@@ -15,11 +15,12 @@ import {
   Tooltip,
 } from "@mantine/core";
 import React, { useState, useEffect } from "react";
-import { IconEdit, IconCalendar } from "@tabler/icons";
+import { IconEdit, IconCalendar, IconTrash } from "@tabler/icons";
 
 type CategoryCardProps = {
   category: CategoryType;
   setEditState: any;
+  setDeleteState: any;
 };
 
 const CategoryCard = (props: CategoryCardProps) => {
@@ -106,6 +107,15 @@ const CategoryCard = (props: CategoryCardProps) => {
           >
             Edit
           </Button>
+          <Tooltip label="Delete">
+            <ActionIcon
+              onClick={() => {
+                props.setDeleteState({ isDeleting: true, category: props.category });
+              }}
+            >
+              <IconTrash size={14} />
+            </ActionIcon>
+          </Tooltip>
         </Group>
       </Stack>
     </Card>

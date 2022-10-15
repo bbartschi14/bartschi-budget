@@ -15,7 +15,7 @@ const CategoryItem = (props: CategoryItemProps) => {
     if (foundCategory !== undefined) {
       setCategoryData(foundCategory);
     }
-  }, [categories]);
+  }, [categories, props.categoryId]);
 
   return (
     <Center>

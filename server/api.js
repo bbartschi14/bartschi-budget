@@ -63,6 +63,22 @@ router.post("/category/update", (req, res) => {
   });
 });
 
+router.post("/category/delete", (req, res) => {
+  Category.deleteOne({ uuid: req.body.uuidToDelete }).then((c) => {
+    const filter = { category: req.body.uuidToDelete };
+
+    const updateTransactions = {
+      $set: {
+        category: req.body.uuidToReplace,
+      },
+    };
+
+    Transaction.updateMany(filter, updateTransactions).then((t) => {
+      res.send(t);
+    });
+  });
+});
+
 router.get("/categories", (req, res) => {
   Category.find({}).then((categories) => {
     res.send(categories);

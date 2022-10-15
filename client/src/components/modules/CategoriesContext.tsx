@@ -14,6 +14,7 @@ export const unassignedCategory: CategoryType = {
 export const initialCategoriesValues = {
   categories: [],
   addCategory: (newCategory: CategoryType) => {},
+  removeCategory: (oldCategory: CategoryType) => {},
   updateCategory: (newCategory: CategoryType) => {},
   budgetTotalPerType: new Map(),
   getCategoryByID: (uuid: string): CategoryType => {
@@ -34,7 +35,11 @@ export const CategoriesProvider: React.FC<CategoriesProviderProps> = ({ children
   const [categoriesByID, setCategoriesByID] = useState(new Map());
 
   const addCategory = (newCategory: CategoryType) => {
-    setCategories([...categories, newCategory]);
+    setCategories((categories) => [...categories, newCategory]);
+  };
+
+  const removeCategory = (oldCategory: CategoryType) => {
+    setCategories((categories) => categories.filter((c) => c.uuid !== oldCategory.uuid));
   };
 
   const updateCategory = (newCategory: CategoryType) => {
@@ -73,7 +78,14 @@ export const CategoriesProvider: React.FC<CategoriesProviderProps> = ({ children
 
   return (
     <CategoriesContext.Provider
-      value={{ categories, addCategory, updateCategory, budgetTotalPerType, getCategoryByID }}
+      value={{
+        categories,
+        addCategory,
+        updateCategory,
+        budgetTotalPerType,
+        getCategoryByID,
+        removeCategory,
+      }}
     >
       {children}
     </CategoriesContext.Provider>
