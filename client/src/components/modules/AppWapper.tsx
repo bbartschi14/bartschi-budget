@@ -12,7 +12,7 @@ type AppWrapperProps = {
 };
 
 const AppWrapper: React.FC<AppWrapperProps> = ({ children, selectedTab, setTab }) => {
-  const { budgetMonth, setBudgetMonth } = useTransactions();
+  const { budgetMonth, setBudgetMonth, categoryType, setCategoryType } = useTransactions();
 
   return (
     <MantineProvider withGlobalStyles withNormalizeCSS>
@@ -40,7 +40,12 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children, selectedTab, setTab }
                 Bartschi Budget
               </Text>{" "}
               {/*@ts-ignore}*/}
-              <MonthSelector value={budgetMonth} setValue={setBudgetMonth} />
+              <MonthSelector
+                value={budgetMonth}
+                setValue={setBudgetMonth}
+                categoryType={categoryType}
+                setCategoryType={setCategoryType}
+              />
               <MainLinks selectedTab={selectedTab} setTab={setTab} />
             </div>
           </MantineHeader>

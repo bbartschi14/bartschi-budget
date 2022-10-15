@@ -9,6 +9,8 @@ import {
   Stack,
   Badge,
   Anchor,
+  SegmentedControl,
+  Text,
 } from "@mantine/core";
 import { IconCurrencyDollar, IconAtom2 } from "@tabler/icons";
 import { v4 as uuidv4 } from "uuid";
@@ -21,10 +23,11 @@ type CategoryEditState = {
   category: CategoryType;
 };
 const Budget = () => {
-  const { categories, addCategory, updateCategory } = useCategories();
+  const { categories, addCategory, updateCategory, budgetTotalPerType } = useCategories();
   const [name, setName] = useState("");
   const [color, setColor] = useState("blue.9");
   const [monthlyBudget, setMonthlyBudget] = useState(0);
+  const [type, setType] = useState("Monthly");
   const [opened, setOpened] = useState(false);
   const [editState, setEditState] = useState<CategoryEditState>({
     isEditing: false,
@@ -36,6 +39,7 @@ const Budget = () => {
       setName(editState.category.name);
       setColor(editState.category.color);
       setMonthlyBudget(editState.category.monthlyBudget);
+      setType(editState.category.type);
       setOpened(true);
     }
   }, [editState]);
@@ -56,6 +60,28 @@ const Budget = () => {
 
   return (
     <Stack>
+      <Group>
+        <Text size={"lg"} weight={"bold"}>
+          {"Monthly Budget :"}
+        </Text>
+        <Text size={"lg"} weight={"normal"}>
+          {budgetTotalPerType.get("Monthly")?.toLocaleString("en-US", {
+            style: "currency",
+            currency: "USD",
+          })}
+        </Text>
+      </Group>
+      <Group>
+        <Text size={"lg"} weight={"bold"}>
+          {"Yearly Items Budget :"}
+        </Text>
+        <Text size={"lg"} weight={"normal"}>
+          {budgetTotalPerType.get("Yearly")?.toLocaleString("en-US", {
+            style: "currency",
+            currency: "USD",
+          })}
+        </Text>
+      </Group>
       <Group spacing={"xs"}>
         <Modal
           opened={opened}
@@ -92,12 +118,20 @@ const Budget = () => {
             </Group>
 
             <NumberInput
-              label="Monthly Budget"
+              label="Budget"
               value={monthlyBudget}
               onChange={(val) => setMonthlyBudget(val)}
               hideControls
               precision={2}
               icon={<IconCurrencyDollar size={18} />}
+            />
+            <SegmentedControl
+              value={type}
+              onChange={setType}
+              data={[
+                { label: "Monthly", value: "Monthly" },
+                { label: "Yearly", value: "Yearly" },
+              ]}
             />
             <Button
               onClick={() => {
@@ -106,6 +140,7 @@ const Budget = () => {
                   monthlyBudget: monthlyBudget,
                   uuid: editState.isEditing ? editState.category.uuid : uuidv4(),
                   color: color,
+                  type: type,
                 };
                 if (editState.isEditing) {
                   updateExisting(newCategory);

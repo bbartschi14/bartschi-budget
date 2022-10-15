@@ -11,7 +11,9 @@ export const initialTransactionsValues = {
   transactions: [],
   setTransactions: (_) => {},
   fetching: true,
-  totals: { categories: [], total: 0, totalRemaining: 0 },
+  totals: { categories: [], totalPerType: new Map(), totalRemainingPerType: new Map() },
+  categoryType: "Monthly",
+  setCategoryType: (_) => {},
 };
 
 export const TransactionsContext = createContext(initialTransactionsValues);
@@ -24,7 +26,12 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
   const [budgetMonth, setBudgetMonth] = useState<MonthSelectorState>({ month: 0, year: 2022 });
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [fetching, setFetching] = useState(true);
-  const [totals, setTotals] = useState({ categories: [], total: 0, totalRemaining: 0 });
+  const [categoryType, setCategoryType] = useState("Monthly");
+  const [totals, setTotals] = useState({
+    categories: [],
+    totalPerType: new Map(),
+    totalRemainingPerType: new Map(),
+  });
   const { categories } = useCategories();
 
   useEffect(() => {
@@ -39,7 +46,11 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
       });
       setTransactions(
         allTransactions.filter(
-          (t) => t.date.getMonth() == budgetMonth.month && t.date.getFullYear() == budgetMonth.year
+          (t) =>
+            (categoryType == "Monthly"
+              ? t.date.getMonth() == budgetMonth.month && t.date.getFullYear() == budgetMonth.year
+              : t.date.getFullYear() == budgetMonth.year) &&
+            categories.find((c) => c.uuid === t.category)?.type == categoryType
         )
       );
     });
@@ -51,19 +62,19 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
 
   useEffect(() => {
     refreshTransactions();
-  }, [budgetMonth]);
+  }, [budgetMonth, categories, categoryType]);
 
   // Calculate totals
   useEffect(() => {
-    let newTotals = { categories: [], total: 0, totalRemaining: 0 };
+    let newTotals = { categories: [], totalPerType: new Map(), totalRemainingPerType: new Map() };
     let categoryMap = new Map();
+    categories.forEach((c) => categoryMap.set(c.uuid, 0));
     transactions.forEach((t) => {
       if (categoryMap.has(t.category)) {
         categoryMap.set(t.category, t.amount + categoryMap.get(t.category));
       } else {
         categoryMap.set(t.category, t.amount);
       }
-      newTotals.total += t.amount;
     });
 
     let perCategoryData = [];
@@ -73,20 +84,47 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
         let newData = {
           uuid: foundCategory.uuid,
           name: foundCategory.name,
+          type: foundCategory.type,
           total: v,
           remaining: foundCategory.monthlyBudget - v,
         };
-        newTotals.totalRemaining += newData.remaining;
+
+        if (newTotals.totalPerType.has(foundCategory.type)) {
+          newTotals.totalPerType.set(
+            foundCategory.type,
+            newTotals.totalPerType.get(foundCategory.type) + newData.total
+          );
+        } else {
+          newTotals.totalPerType.set(foundCategory.type, newData.total);
+        }
+
+        if (newTotals.totalRemainingPerType.has(foundCategory.type)) {
+          newTotals.totalRemainingPerType.set(
+            foundCategory.type,
+            newTotals.totalRemainingPerType.get(foundCategory.type) + newData.remaining
+          );
+        } else {
+          newTotals.totalRemainingPerType.set(foundCategory.type, newData.remaining);
+        }
         perCategoryData.push(newData);
       }
     });
     newTotals.categories = perCategoryData;
     setTotals(newTotals);
-  }, [transactions, categories]);
+  }, [transactions]);
 
   return (
     <TransactionsContext.Provider
-      value={{ budgetMonth, setBudgetMonth, transactions, setTransactions, fetching, totals }}
+      value={{
+        budgetMonth,
+        setBudgetMonth,
+        transactions,
+        setTransactions,
+        fetching,
+        totals,
+        categoryType,
+        setCategoryType,
+      }}
     >
       {children}
     </TransactionsContext.Provider>

@@ -10,9 +10,12 @@ import {
   MantineColor,
   useMantineTheme,
   ActionIcon,
+  Code,
+  Avatar,
+  Tooltip,
 } from "@mantine/core";
 import React, { useState, useEffect } from "react";
-import { IconEdit, IconTrash } from "@tabler/icons";
+import { IconEdit, IconCalendar } from "@tabler/icons";
 
 type CategoryCardProps = {
   category: CategoryType;
@@ -43,11 +46,31 @@ const CategoryCard = (props: CategoryCardProps) => {
       sx={(theme) => {
         let color = getCSSColor(props.category.color);
         return {
+          overflow: "visible",
           borderColor: color,
           borderWidth: "3px",
         };
       }}
     >
+      {props.category.type == "Yearly" ? (
+        <Tooltip color={"gray.6"} label="Yearly category">
+          <Avatar
+            variant="filled"
+            color={"gray.6"}
+            radius={"xl"}
+            size={"md"}
+            sx={(theme) => ({
+              position: "absolute",
+              right: "-10px",
+              top: "-10px",
+            })}
+          >
+            <IconCalendar size={20} />
+          </Avatar>
+        </Tooltip>
+      ) : (
+        <></>
+      )}
       <Stack>
         <Group position="apart">
           <Text weight={500} size="lg">
@@ -55,12 +78,23 @@ const CategoryCard = (props: CategoryCardProps) => {
           </Text>
           <Badge color={props.category.color}>{"Color"}</Badge>
         </Group>
-        <Text>
-          {props.category.monthlyBudget.toLocaleString("en-US", {
-            style: "currency",
-            currency: "USD",
-          }) + " / month"}
-        </Text>
+        <Group spacing={"xs"} align={"center"}>
+          <Code
+            sx={(theme) => ({
+              fontSize: "18px",
+              letterSpacing: "1px",
+              backgroundColor: "white",
+              padding: "0px",
+            })}
+          >
+            {props.category.monthlyBudget.toLocaleString("en-US", {
+              style: "currency",
+              currency: "USD",
+            })}
+          </Code>
+          <Text size={"xl"}>{"/"}</Text>
+          <Text>{props.category.type == "Monthly" ? "month" : "year"}</Text>
+        </Group>
         <Group position="apart">
           <Button
             sx={() => ({ alignSelf: "flex-start" })}

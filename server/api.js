@@ -48,6 +48,7 @@ router.post("/category/add", (req, res) => {
     name: req.body.name,
     monthlyBudget: req.body.monthlyBudget,
     color: req.body.color,
+    type: req.body.type,
   });
   newCategory.save().then((category) => res.send(category));
 });
@@ -57,6 +58,7 @@ router.post("/category/update", (req, res) => {
     category.name = req.body.name;
     category.monthlyBudget = req.body.monthlyBudget;
     category.color = req.body.color;
+    category.type = req.body.type;
     category.save().then((c) => res.send(c));
   });
 });

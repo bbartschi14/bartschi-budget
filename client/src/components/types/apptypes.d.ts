@@ -3,6 +3,7 @@ type CategoryType = {
   name: string;
   color: string;
   monthlyBudget: number;
+  type: string; // "Monthly" "Yearly"
 };
 
 type TransactionType = {

@@ -5,6 +5,7 @@ const CategorySchema = new mongoose.Schema({
   name: String,
   monthlyBudget: Number,
   color: String,
+  type: String,
 });
 
 // compile model from schema
