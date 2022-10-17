@@ -59,6 +59,7 @@ const TotalsTable = () => {
               })}
             </td>
           </tr>
+
           {!collapsed ? (
             totals.categories.map((c) => {
               return c.type == categoryType ? (

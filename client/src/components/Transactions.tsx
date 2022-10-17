@@ -314,7 +314,7 @@ const Transactions = () => {
                         });
                         setAmount(transaction.amount);
                         setCategory(transaction.category);
-                        onDateChange(transaction.date);
+                        setDayOfMonth(transaction.date.getDate());
                       },
                     },
                     {
