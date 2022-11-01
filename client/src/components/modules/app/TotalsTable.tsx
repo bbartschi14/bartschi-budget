@@ -1,7 +1,7 @@
-import { useTransactions } from "./TransactionsContext";
+import { useTransactions } from "../transactions/TransactionsContext";
 import { useMantineTheme, Text, Table, Box, LoadingOverlay } from "@mantine/core";
 import React, { useEffect, useState } from "react";
-import CategoryItem from "./CategoryItem";
+import CategoryItem from "../categories/CategoryItem";
 
 const TotalsTable = () => {
   const theme = useMantineTheme();

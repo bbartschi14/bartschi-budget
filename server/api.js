@@ -26,9 +26,8 @@ router.post("/transaction", (req, res) => {
     name: req.body.name,
     amount: req.body.amount,
     category: req.body.category,
-    date: req.body.date,
+    date: new Date(req.body.date).toLocaleDateString(),
   });
-  console.log(newTransaction);
   newTransaction.save().then((transaction) => res.send(transaction));
 });
 

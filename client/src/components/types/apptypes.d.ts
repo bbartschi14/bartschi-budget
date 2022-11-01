@@ -1,5 +1,5 @@
 type CategoryType = {
-  uuid: string;
+  uuid?: string;
   name: string;
   color: string;
   monthlyBudget: number;
@@ -18,4 +18,14 @@ type TransactionType = {
 type MonthSelectorState = {
   month: number; // 0 - 11
   year: number;
+};
+
+type CategoryEditState = {
+  state: "closed" | "adding" | "editing";
+  category: CategoryType;
+};
+type CategoryDeleteState = {
+  isDeleting: boolean;
+  category: CategoryType;
+  sendToCategory: CategoryType;
 };

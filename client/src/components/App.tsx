@@ -1,13 +1,17 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Transactions from "./Transactions";
-import { NotificationsProvider, showNotification } from "@mantine/notifications";
+import { NotificationsProvider } from "@mantine/notifications";
 import { useLocalStorage } from "@mantine/hooks";
-import { get, post } from "../utilities";
-import { Button, Group, PasswordInput, Stack } from "@mantine/core";
-import { CategoriesProvider } from "./modules/CategoriesContext";
-import { TransactionsProvider } from "./modules/TransactionsContext";
+import { post } from "../utilities";
+import { Button, PasswordInput, Stack } from "@mantine/core";
+import { CategoriesProvider } from "./modules/categories/CategoriesContext";
+import { TransactionsProvider } from "./modules/transactions/TransactionsContext";
+import Home from "./Home";
 
+/**
+ * Handle website login and routing to main Home page
+ *
+ */
 const App = () => {
   const [savedPassword, setSavedPassword] = useLocalStorage({ key: "password", defaultValue: "" });
   const [typedPassword, setTypedPassword] = useState<string>("");
@@ -39,7 +43,7 @@ const App = () => {
                 path="/"
                 element={
                   isLoggedIn ? (
-                    <Transactions></Transactions>
+                    <Home></Home>
                   ) : (
                     <Stack spacing={"xs"}>
                       <PasswordInput

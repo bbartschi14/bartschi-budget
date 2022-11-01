@@ -2,7 +2,7 @@ import React from "react";
 import { MantineProvider, Text, AppShell, Header as MantineHeader, Navbar } from "@mantine/core";
 import { MainLinks } from "./Links";
 import MonthSelector from "./MonthSelector";
-import { useTransactions } from "./TransactionsContext";
+import { useTransactions } from "../transactions/TransactionsContext";
 import TotalsTable from "./TotalsTable";
 
 type AppWrapperProps = {

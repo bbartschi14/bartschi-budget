@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { get } from "../../utilities";
+import { get } from "../../../utilities";
 import dayjs from "dayjs";
-import { useCategories } from "./CategoriesContext";
+import { useCategories } from "../categories/CategoriesContext";
 
 // https://www.youtube.com/watch?v=yoxrgfK0JHc
 

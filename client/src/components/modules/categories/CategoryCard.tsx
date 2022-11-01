@@ -1,26 +1,23 @@
 import {
   Card,
-  Center,
-  Paper,
   Text,
   Stack,
   Button,
   Group,
   Badge,
-  MantineColor,
   useMantineTheme,
   ActionIcon,
   Code,
   Avatar,
   Tooltip,
 } from "@mantine/core";
-import React, { useState, useEffect } from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { IconEdit, IconCalendar, IconTrash } from "@tabler/icons";
 
 type CategoryCardProps = {
   category: CategoryType;
-  setEditState: any;
-  setDeleteState: any;
+  setEditState: Dispatch<SetStateAction<CategoryEditState>>;
+  setDeleteState: Dispatch<SetStateAction<CategoryDeleteState>>;
 };
 
 const CategoryCard = (props: CategoryCardProps) => {
@@ -38,7 +35,6 @@ const CategoryCard = (props: CategoryCardProps) => {
   return (
     <Card
       style={{
-        // backgroundColor: props.category.color,
         width: "300px",
       }}
       p="xl"
@@ -53,7 +49,8 @@ const CategoryCard = (props: CategoryCardProps) => {
         };
       }}
     >
-      {props.category.type == "Yearly" ? (
+      {/* Yearly Tag */}
+      {props.category.type == "Yearly" && (
         <Tooltip color={"gray.6"} label="Yearly category">
           <Avatar
             variant="filled"
@@ -69,16 +66,18 @@ const CategoryCard = (props: CategoryCardProps) => {
             <IconCalendar size={20} />
           </Avatar>
         </Tooltip>
-      ) : (
-        <></>
       )}
+
       <Stack>
+        {/* Top Row (Name) */}
         <Group position="apart">
           <Text weight={500} size="lg">
             {props.category.name}
           </Text>
           <Badge color={props.category.color}>{"Color"}</Badge>
         </Group>
+
+        {/* Middle Row (Money) */}
         <Group spacing={"xs"} align={"center"}>
           <Code
             sx={(theme) => ({
@@ -96,13 +95,15 @@ const CategoryCard = (props: CategoryCardProps) => {
           <Text size={"xl"}>{"/"}</Text>
           <Text>{props.category.type == "Monthly" ? "month" : "year"}</Text>
         </Group>
+
+        {/* Bottom Row (Actions) */}
         <Group position="apart">
           <Button
             sx={() => ({ alignSelf: "flex-start" })}
             leftIcon={<IconEdit size={14} />}
             variant="light"
             onClick={() => {
-              props.setEditState({ isEditing: true, category: props.category });
+              props.setEditState({ state: "editing", category: props.category });
             }}
           >
             Edit
@@ -110,7 +111,11 @@ const CategoryCard = (props: CategoryCardProps) => {
           <Tooltip label="Delete">
             <ActionIcon
               onClick={() => {
-                props.setDeleteState({ isDeleting: true, category: props.category });
+                props.setDeleteState({
+                  isDeleting: true,
+                  category: props.category,
+                  sendToCategory: null,
+                });
               }}
             >
               <IconTrash size={14} />
