@@ -1,5 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useRef } from "react";
 import { useCategories, unassignedCategory } from "../categories/CategoriesContext";
+import { IconCurrencyDollar, IconAtom2, IconChevronLeft, IconChevronRight } from "@tabler/icons";
+import { v4 as uuidv4 } from "uuid";
+import { getCSSColor } from "../../../utilities";
+import { useTransactions } from "./TransactionsContext";
+import { UseFormReturnType } from "@mantine/form";
 import {
   Button,
   Group,
@@ -10,77 +15,64 @@ import {
   ActionIcon,
   NumberInputHandlers,
 } from "@mantine/core";
-import { IconCurrencyDollar, IconAtom2, IconChevronLeft, IconChevronRight } from "@tabler/icons";
-import { v4 as uuidv4 } from "uuid";
-import { post } from "../../../utilities";
-import { useTransactions } from "./TransactionsContext";
 
-const TransactionForm = ({
-  name,
-  setName,
-  amount,
-  setAmount,
-  category,
-  setCategory,
-  date,
-  dayOfMonth,
-  setDayOfMonth,
-  descriptionInput,
-}) => {
+type TransactionFormProps = {
+  descriptionInput: React.MutableRefObject<HTMLInputElement>;
+  form: UseFormReturnType<TransactionType, (values: TransactionType) => TransactionType>;
+};
+
+const TransactionForm = (props: TransactionFormProps) => {
+  // Global state hooks
   const theme = useMantineTheme();
-  const handlers = useRef<NumberInputHandlers>();
   const { categories } = useCategories();
-  const getCSSColor = (color: string) => {
-    if (!color) return "";
-    let splitColor = color.split(".");
-    return color in theme.colors || splitColor[0] in theme.colors
-      ? splitColor.length > 1 && splitColor[1] in theme.colors[splitColor[0]]
-        ? theme.colors[splitColor[0]][splitColor[1]]
-        : theme.colors[color]
-      : color;
-  };
   const { addTransaction } = useTransactions();
+
+  // Use for custom number input incrementing
+  const dateHandlers = useRef<NumberInputHandlers>();
+
+  /**
+   * Gather transaction form data and submit to
+   * database with new uuid.
+   */
   const postTransactionForm = () => {
     let transaction: TransactionType = {
-      name: name,
-      amount: amount,
+      ...props.form.values,
       uuid: uuidv4(),
-      category: category,
-      date: date,
     };
-    post("/api/transaction", transaction).then((res) => {});
     addTransaction(transaction);
-    descriptionInput.current.select();
+
+    // UX feature, brings focus back to description input
+    props.descriptionInput.current.select();
+  };
+
+  /**
+   * For easier UX, when pressing "Enter" anywhere in the form,
+   * try to post form data.
+   */
+  const handleKeyDownInForm = (event) => {
+    event.stopPropagation();
+    if (event.key === "Enter") postTransactionForm();
   };
 
   return (
     <Group spacing={"xs"} grow align={"end"}>
       <TextInput
-        placeholder="Enter description"
         label="Description"
-        value={name}
-        onChange={(event) => setName(event.currentTarget.value, () => {})}
-        onKeyDown={(event) => {
-          event.stopPropagation();
-          if (event.key === "Enter") postTransactionForm();
-        }}
-        ref={descriptionInput}
+        placeholder="Enter description"
+        ref={props.descriptionInput}
+        {...props.form.getInputProps("name")}
+        onKeyDown={handleKeyDownInForm}
       />
       <NumberInput
         label="Amount"
-        value={amount}
-        onChange={(val) => setAmount(val)}
         hideControls
         precision={2}
         icon={<IconCurrencyDollar size={18} />}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") postTransactionForm();
-        }}
+        {...props.form.getInputProps("amount")}
+        onKeyDown={handleKeyDownInForm}
       />
       <Select
         label="Category"
-        value={category}
-        onChange={setCategory}
         searchable
         data={
           categories.length > 0
@@ -97,7 +89,10 @@ const TransactionForm = ({
             backgroundColor:
               categories.length > 0
                 ? theme.fn.lighten(
-                    getCSSColor(categories.find((c) => c.uuid == category)?.color),
+                    getCSSColor(
+                      theme,
+                      categories.find((c) => c.uuid == props.form.values.category)?.color
+                    ),
                     0.9
                   )
                 : "",
@@ -106,9 +101,17 @@ const TransactionForm = ({
         icon={
           <IconAtom2
             size={14}
-            color={categories ? getCSSColor(categories.find((c) => c.uuid == category)?.color) : ""}
+            color={
+              categories
+                ? getCSSColor(
+                    theme,
+                    categories.find((c) => c.uuid == props.form.values.category)?.color
+                  )
+                : ""
+            }
           />
         }
+        {...props.form.getInputProps("category")}
       />
       <Group noWrap={true} spacing={2} align={"flex-end"}>
         <ActionIcon
@@ -116,26 +119,31 @@ const TransactionForm = ({
           sx={(theme) => ({ height: "36px" })}
           size={20}
           variant="default"
-          onClick={() => handlers.current.decrement()}
+          onClick={() => dateHandlers.current.decrement()}
         >
           <IconChevronLeft size={14} />
         </ActionIcon>
         <NumberInput
           label={"Day"}
           description={
-            "(" + (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear() + ")"
+            "(" +
+            (props.form.values.date.getMonth() + 1) +
+            "/" +
+            props.form.values.date.getDate() +
+            "/" +
+            props.form.values.date.getFullYear() +
+            ")"
           }
-          value={dayOfMonth}
+          value={props.form.values.date.getDate()}
           onChange={(val) => {
-            setDayOfMonth(val);
+            props.form.setFieldValue(
+              "date",
+              new Date(props.form.values.date.getFullYear(), props.form.values.date.getMonth(), val)
+            );
           }}
           hideControls
-          handlersRef={handlers}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              postTransactionForm();
-            }
-          }}
+          handlersRef={dateHandlers}
+          onKeyDown={handleKeyDownInForm}
           styles={(theme) => ({
             input: {
               textAlign: "center",
@@ -147,7 +155,7 @@ const TransactionForm = ({
           sx={(theme) => ({ height: "36px" })}
           size={20}
           variant="default"
-          onClick={() => handlers.current.increment()}
+          onClick={() => dateHandlers.current.increment()}
         >
           <IconChevronRight size={14} />
         </ActionIcon>
@@ -158,7 +166,7 @@ const TransactionForm = ({
           postTransactionForm();
         }}
       >
-        Add Entry!
+        {"Add Entry!"}
       </Button>
     </Group>
   );

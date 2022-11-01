@@ -13,6 +13,7 @@ import {
 } from "@mantine/core";
 import React, { Dispatch, SetStateAction } from "react";
 import { IconEdit, IconCalendar, IconTrash } from "@tabler/icons";
+import { getCSSColor } from "../../../utilities";
 
 type CategoryCardProps = {
   category: CategoryType;
@@ -23,15 +24,6 @@ type CategoryCardProps = {
 const CategoryCard = (props: CategoryCardProps) => {
   const theme = useMantineTheme();
 
-  const getCSSColor = (color: string) => {
-    let splitColor = color.split(".");
-    return color in theme.colors || splitColor[0] in theme.colors
-      ? splitColor.length > 1 && splitColor[1] in theme.colors[splitColor[0]]
-        ? theme.colors[splitColor[0]][splitColor[1]]
-        : theme.colors[color]
-      : color;
-  };
-
   return (
     <Card
       style={{
@@ -41,7 +33,7 @@ const CategoryCard = (props: CategoryCardProps) => {
       shadow="sm"
       withBorder={true}
       sx={(theme) => {
-        let color = getCSSColor(props.category.color);
+        let color = getCSSColor(theme, props.category.color);
         return {
           overflow: "visible",
           borderColor: color,

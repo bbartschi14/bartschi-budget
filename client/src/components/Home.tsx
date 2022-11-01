@@ -1,12 +1,11 @@
 import { useState } from "react";
 import AppWrapper from "./modules/app/AppWapper";
-import { Tabs, Stack } from "@mantine/core";
+import { Tabs } from "@mantine/core";
 import Budget from "./pages/Budget";
 import Transactions from "./pages/Transactions";
 
 /**
  * Main home page wrapper and tab controls
- *
  */
 const Home = () => {
   const [tab, setTab] = useState(0);
@@ -18,9 +17,7 @@ const Home = () => {
           <Transactions />
         </Tabs.Panel>
         <Tabs.Panel value={"1"}>
-          <Stack>
-            <Budget />
-          </Stack>
+          <Budget />
         </Tabs.Panel>
       </Tabs>
     </AppWrapper>

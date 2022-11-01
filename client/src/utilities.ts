@@ -8,6 +8,8 @@
  * e.g. get('/api/foo', { bar: 0 }).then(res => console.log(res))
  */
 
+import { MantineTheme } from "@mantine/core";
+
 // ex: formatParams({ some_key: "some_value", a: "b"}) => "some_key=some_value&a=b"
 function formatParams(params) {
   // iterate of all the keys of params as an array,
@@ -61,3 +63,13 @@ export function post(endpoint, params = {}) {
       throw `POST request to ${endpoint} failed with error:\n${error}`;
     });
 }
+
+export const getCSSColor = (theme: MantineTheme, color: string) => {
+  if (!color) return "";
+  let splitColor = color.split(".");
+  return color in theme.colors || splitColor[0] in theme.colors
+    ? splitColor.length > 1 && splitColor[1] in theme.colors[splitColor[0]]
+      ? theme.colors[splitColor[0]][splitColor[1]]
+      : theme.colors[color]
+    : color;
+};

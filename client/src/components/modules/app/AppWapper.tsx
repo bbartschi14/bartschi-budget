@@ -1,5 +1,12 @@
 import React from "react";
-import { MantineProvider, Text, AppShell, Header as MantineHeader, Navbar } from "@mantine/core";
+import {
+  MantineProvider,
+  Text,
+  AppShell,
+  Header as MantineHeader,
+  Navbar,
+  ScrollArea,
+} from "@mantine/core";
 import { MainLinks } from "./Links";
 import MonthSelector from "./MonthSelector";
 import { useTransactions } from "../transactions/TransactionsContext";
@@ -19,8 +26,8 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children, selectedTab, setTab }
       <AppShell
         padding="md"
         navbar={
-          <Navbar width={{ base: 400 }} p="sm">
-            <Navbar.Section>
+          <Navbar width={{ base: 400 }} p="xs">
+            <Navbar.Section grow component={ScrollArea} mx="-xs" px="xs">
               <TotalsTable></TotalsTable>
             </Navbar.Section>
           </Navbar>

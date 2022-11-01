@@ -7,8 +7,7 @@ type CategoryType = {
 };
 
 type TransactionType = {
-  _id?: string;
-  uuid: string;
+  uuid?: string;
   name: string;
   category: string; //uuid
   amount: number;

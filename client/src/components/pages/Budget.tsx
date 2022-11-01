@@ -6,6 +6,9 @@ import { useForm } from "@mantine/form";
 import BudgetHeader from "../modules/categories/BudgetHeader";
 import CategoryCardsList from "../modules/categories/CategoryCardsList";
 
+/**
+ * Page for viewing and editing budget categories for month/year
+ */
 const Budget = () => {
   // Manage action states (editing, deleting) for modal opening flow
   const [editState, setEditState] = useState<CategoryEditState>({

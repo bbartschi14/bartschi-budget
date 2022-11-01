@@ -1,7 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { get } from "../../../utilities";
+import { get, post } from "../../../utilities";
 import dayjs from "dayjs";
 import { useCategories } from "../categories/CategoriesContext";
+import { showNotification, hideNotification } from "@mantine/notifications";
+import { IconCheck, IconCornerUpLeft, IconTrash, IconX } from "@tabler/icons";
+import { ActionIcon, Group, Space, Text, Tooltip } from "@mantine/core";
 
 // https://www.youtube.com/watch?v=yoxrgfK0JHc
 
@@ -11,6 +14,7 @@ export const initialTransactionsValues = {
   transactions: [],
   setTransactions: (_) => {},
   addTransaction: (newTransaction: TransactionType) => {},
+  deleteTransaction: (transaction: TransactionType) => {},
   fetching: true,
   totals: { categories: [], totalPerType: new Map(), totalRemainingPerType: new Map() },
   categoryType: "Monthly",
@@ -57,10 +61,132 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
     });
   };
 
+  const showSuccessfulAddNotification = (newTransaction: TransactionType) => {
+    const category = categories.find((c) => c.uuid === newTransaction.category);
+    showNotification({
+      id: `added_${newTransaction.uuid}`,
+      icon: <IconCheck size={18} />,
+      color: category?.color,
+      title: (
+        <Group position="apart">
+          <Group spacing={4}>
+            {/* WARNING given if adding a yearly transaction when looking at monthly and vice versa */}
+            {category.type !== categoryType && <Text>{`(${category.type.toUpperCase()}) `}</Text>}
+            <Text>{"Transaction Added : "}</Text>
+            <Text>
+              {newTransaction.amount.toLocaleString("en-US", {
+                style: "currency",
+                currency: "USD",
+              })}
+            </Text>
+            <Space />
+          </Group>
+          <Tooltip label="Undo">
+            <ActionIcon
+              onClick={() => {
+                deleteTransaction(newTransaction);
+                hideNotification(`added_${newTransaction.uuid}`);
+              }}
+              variant="light"
+              color="red"
+            >
+              <IconCornerUpLeft size={16} />
+            </ActionIcon>
+          </Tooltip>
+        </Group>
+      ),
+      message: (
+        <Group spacing={"xs"}>
+          <Text color={category?.color} weight="bold">
+            {category?.name}
+          </Text>
+          <Text italic={true}>{`( ${newTransaction.name} )`}</Text>
+        </Group>
+      ),
+    });
+  };
+
+  const showFailedAddNotification = (newTransaction: TransactionType) => {
+    showNotification({
+      icon: <IconX size={18} />,
+      title: "Add Failed",
+      message: "Check internet connection or server",
+      color: "red",
+    });
+  };
+
+  const showSuccessfulDeleteNotification = (transaction: TransactionType) => {
+    const category = categories.find((c) => c.uuid === transaction.category);
+    showNotification({
+      id: `deleted_${transaction.uuid}`,
+      icon: <IconTrash size={18} />,
+      color: category?.color,
+      title: (
+        <Group position="apart">
+          <Group spacing={4}>
+            {category.type !== categoryType ? (
+              <Text>{`(${category.type.toUpperCase()}) `}</Text>
+            ) : (
+              <></>
+            )}
+            <Text italic={true}>{"Transaction Deleted : "}</Text>
+            <Text>
+              {transaction.amount.toLocaleString("en-US", {
+                style: "currency",
+                currency: "USD",
+              })}
+            </Text>
+            <Space />
+          </Group>
+          <Tooltip label="Undo">
+            <ActionIcon
+              onClick={() => {
+                addTransaction(transaction);
+                hideNotification(`deleted_${transaction.uuid}`);
+              }}
+              variant="light"
+              color="green"
+            >
+              <IconCornerUpLeft size={16} />
+            </ActionIcon>
+          </Tooltip>
+        </Group>
+      ),
+      message: (
+        <Group spacing={"xs"}>
+          <Text color={category?.color} weight="bold">
+            {category?.name}
+          </Text>
+          <Text italic={true}>{`( ${transaction.name} )`}</Text>
+        </Group>
+      ),
+    });
+  };
+
   const addTransaction = (newTransaction: TransactionType) => {
+    post("/api/transaction", newTransaction)
+      .then((res) => {
+        showSuccessfulAddNotification(newTransaction);
+      })
+      .catch((err) => {
+        removeLocalTransaction(newTransaction);
+        showFailedAddNotification(newTransaction);
+      });
+
     if (categories.find((c) => c.uuid === newTransaction.category)?.type == categoryType) {
       setTransactions((prev) => [...prev, newTransaction]);
     }
+  };
+
+  const removeLocalTransaction = (transaction: TransactionType) => {
+    setTransactions((prev) => prev.filter((item) => item.uuid !== transaction.uuid));
+  };
+
+  const deleteTransaction = (transaction: TransactionType) => {
+    post("/api/transactions/delete", transaction).then((res) => {
+      showSuccessfulDeleteNotification(transaction);
+    });
+    removeLocalTransaction(transaction);
   };
 
   useEffect(() => {
@@ -132,6 +258,7 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
         categoryType,
         setCategoryType,
         addTransaction,
+        deleteTransaction,
       }}
     >
       {children}

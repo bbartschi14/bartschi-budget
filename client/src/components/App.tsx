@@ -34,9 +34,9 @@ const App = () => {
   }, [savedPassword]);
 
   return (
-    <CategoriesProvider>
-      <TransactionsProvider>
-        <NotificationsProvider>
+    <NotificationsProvider>
+      <CategoriesProvider>
+        <TransactionsProvider>
           <BrowserRouter>
             <Routes>
               <Route
@@ -60,9 +60,9 @@ const App = () => {
               />
             </Routes>
           </BrowserRouter>
-        </NotificationsProvider>
-      </TransactionsProvider>
-    </CategoriesProvider>
+        </TransactionsProvider>
+      </CategoriesProvider>
+    </NotificationsProvider>
   );
 };
 

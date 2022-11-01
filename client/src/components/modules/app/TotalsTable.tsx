@@ -2,11 +2,44 @@ import { useTransactions } from "../transactions/TransactionsContext";
 import { useMantineTheme, Text, Table, Box, LoadingOverlay } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import CategoryItem from "../categories/CategoryItem";
+import CSS from "csstype";
+
+const baseNumberStyle: CSS.Properties = { width: "100px", textAlign: "center" };
+
+const TotalsRemainingItem = ({ remaining, size }) => {
+  const theme = useMantineTheme();
+  return (
+    <td
+      style={{
+        width: "100px",
+        fontSize: size,
+        textAlign: "center",
+        fontWeight: "bold",
+        color: remaining > 0 ? theme.colors.green[7] : theme.colors.red[6],
+      }}
+    >
+      {remaining?.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+      })}
+    </td>
+  );
+};
+
+const TotalsItem = ({ total }) => {
+  return (
+    <td style={baseNumberStyle}>
+      {total?.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+      })}
+    </td>
+  );
+};
 
 const TotalsTable = () => {
-  const theme = useMantineTheme();
   const { totals, categoryType, fetching } = useTransactions();
-  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const theme = useMantineTheme();
 
   return (
     <div style={{ position: "relative" }}>
@@ -24,74 +57,39 @@ const TotalsTable = () => {
         <thead>
           <tr>
             <th></th>
-            <th style={{ width: "100px", textAlign: "center" }}>Spent</th>
-            <th style={{ width: "100px", textAlign: "center" }}>Remaining</th>
+            <th style={baseNumberStyle}>Spent</th>
+            <th style={baseNumberStyle}>Remaining</th>
           </tr>
         </thead>
         <tbody>
+          {/* Begin TOTAL ROW */}
           <tr>
             <td>
               <Text size={"xl"} weight={"bold"} align={"center"}>
                 {categoryType + " Total"}
               </Text>
             </td>
-            <td style={{ width: "100px", textAlign: "center" }}>
-              {totals.totalPerType.get(categoryType)?.toLocaleString("en-US", {
-                style: "currency",
-                currency: "USD",
-              })}
-            </td>
-            <td
-              style={{
-                width: "100px",
-                fontSize: theme.fontSizes.xl,
-                textAlign: "center",
-                fontWeight: "bold",
-                color:
-                  totals.totalRemainingPerType.get(categoryType) > 0
-                    ? theme.colors.green[7]
-                    : theme.colors.red[7],
-              }}
-            >
-              {totals.totalRemainingPerType.get(categoryType)?.toLocaleString("en-US", {
-                style: "currency",
-                currency: "USD",
-              })}
-            </td>
+            <TotalsItem total={totals.totalPerType.get(categoryType)} />
+            <TotalsRemainingItem
+              size={theme.fontSizes.xl}
+              remaining={totals.totalRemainingPerType?.get(categoryType)}
+            />
           </tr>
+          {/* End TOTAL ROW */}
 
-          {!collapsed ? (
-            totals.categories.map((c) => {
-              return c.type == categoryType ? (
-                <tr key={c.uuid}>
-                  <td style={{ textAlign: "right" }}>
-                    <CategoryItem categoryId={c.uuid}></CategoryItem>
-                  </td>
-                  <td style={{ width: "100px", textAlign: "center" }}>
-                    {c.total.toLocaleString("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                    })}
-                  </td>
-                  <td
-                    style={{
-                      width: "100px",
-                      textAlign: "center",
-                      fontWeight: "bold",
-                      color: c.remaining > 0 ? theme.colors.green[7] : theme.colors.red[6],
-                    }}
-                  >
-                    {c.remaining.toLocaleString("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                    })}
-                  </td>
-                </tr>
-              ) : null;
-            })
-          ) : (
-            <></>
-          )}
+          {/* Begin PER CATEGORY ROWS */}
+          {totals.categories.map((c) => {
+            return c.type == categoryType ? (
+              <tr key={c.uuid}>
+                <td>
+                  <CategoryItem categoryId={c.uuid}></CategoryItem>
+                </td>
+                <TotalsItem total={c.total} />
+                <TotalsRemainingItem size={theme.fontSizes.sm} remaining={c.remaining} />
+              </tr>
+            ) : null;
+          })}
+          {/* End PER CATEGORY ROWS */}
         </tbody>
       </Table>
     </div>

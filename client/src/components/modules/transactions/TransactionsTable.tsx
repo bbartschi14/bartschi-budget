@@ -6,18 +6,19 @@ import DateItem from "../app/DateItem";
 import { DataTable, DataTableSortStatus } from "mantine-datatable";
 import sortBy from "lodash/sortBy";
 import { Text } from "@mantine/core";
-import { useStateCallback } from "use-state-callback";
 import { useTransactions } from "../transactions/TransactionsContext";
+import { UseFormReturnType } from "@mantine/form";
 
-const TransactionsTable = ({
-  setName,
-  setAmount,
-  setCategory,
-  setDayOfMonth,
-  descriptionInput,
-}) => {
-  const { transactions, setTransactions, fetching } = useTransactions();
-  const [localTransactions, setLocalTransactions] = useStateCallback<TransactionType[]>([]);
+type TransactionsTableProps = {
+  copyTransactionToForm: (transaction: TransactionType) => void;
+};
+
+/**
+ * Date table of all transactions in the current month/year
+ */
+const TransactionsTable = (props: TransactionsTableProps) => {
+  const { transactions, deleteTransaction, fetching } = useTransactions();
+  const [localTransactions, setLocalTransactions] = useState<TransactionType[]>([]);
   const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
     columnAccessor: "date",
     direction: "asc",
@@ -27,10 +28,7 @@ const TransactionsTable = ({
   const reSort = (updatedTransactions) => {
     if (sortStatus) {
       const data = sortBy(updatedTransactions, sortStatus.columnAccessor);
-      setLocalTransactions(
-        sortStatus.direction === "desc" ? data.reverse() : data,
-        (newState) => {}
-      );
+      setLocalTransactions(sortStatus.direction === "desc" ? data.reverse() : data);
     }
   };
   useEffect(() => {
@@ -99,12 +97,7 @@ const TransactionsTable = ({
               key: "copy",
               title: `Copy details`,
               onClick: () => {
-                setName(transaction.name, () => {
-                  if (descriptionInput.current) descriptionInput.current.select();
-                });
-                setAmount(transaction.amount);
-                setCategory(transaction.category);
-                setDayOfMonth(transaction.date.getDate());
+                props.copyTransactionToForm(transaction);
               },
             },
 
@@ -112,16 +105,10 @@ const TransactionsTable = ({
             {
               icon: <IconTrash size={14} />,
               key: "delete",
-              color: "red", // @ts-ignore
+              color: "red",
               title: `Delete transaction`,
               onClick: () => {
-                post("/api/transactions/delete", transaction).then((res) => {
-                  console.log("Delete success!");
-                });
-                setTransactions(
-                  // @ts-ignore
-                  (prev) => prev.filter((item) => item.uuid !== transaction.uuid)
-                );
+                deleteTransaction(transaction);
               },
             },
           ],
