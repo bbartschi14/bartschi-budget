@@ -1,7 +1,6 @@
 import { Button, Modal, Select, Stack } from "@mantine/core";
 import { IconTrash } from "@tabler/icons";
 import { useCategories } from "./CategoriesContext";
-import { post } from "../../../utilities";
 import { Dispatch, SetStateAction } from "react";
 
 type CategoryDeleteModalProps = {
@@ -14,23 +13,17 @@ type CategoryDeleteModalProps = {
  * Finalizes deletion info and sends API request to remove category.
  */
 const CategoryDeleteModal = (props: CategoryDeleteModalProps) => {
-  const { categories, removeCategory } = useCategories();
+  const { categories, getCategoryByID, removeCategory } = useCategories();
 
   const setDestinationCategory = (newCategoryUUID: string): void => {
     props.setDeleteState((prevState) => ({
       ...prevState,
-      sendToCategory: categories.find((c) => c.uuid === newCategoryUUID),
+      sendToCategory: getCategoryByID(newCategoryUUID),
     }));
   };
 
   const submitModalForm = (event) => {
-    post("api/category/delete", {
-      uuidToDelete: props.deleteState.category.uuid,
-      uuidToReplace: props.deleteState.sendToCategory.uuid,
-    }).then((res) => {
-      removeCategory(props.deleteState.category);
-    });
-
+    removeCategory(props.deleteState.category, props.deleteState.sendToCategory);
     props.setDeleteState({ isDeleting: false, category: null, sendToCategory: null });
   };
 

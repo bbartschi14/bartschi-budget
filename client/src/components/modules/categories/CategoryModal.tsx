@@ -13,7 +13,6 @@ import { v4 as uuidv4 } from "uuid";
 import { UseFormReturnType } from "@mantine/form";
 import { IconCurrencyDollar } from "@tabler/icons";
 import { Dispatch, SetStateAction } from "react";
-import { post } from "../../../utilities";
 import { useCategories } from "../categories/CategoriesContext";
 
 type CategoryModalProps = {
@@ -28,18 +27,6 @@ type CategoryModalProps = {
 const CategoryModal = (props: CategoryModalProps) => {
   const { addCategory, updateCategory } = useCategories();
 
-  const addNewCategory = (category: CategoryType): void => {
-    post("/api/category/add", category).then((res) => {
-      addCategory(res);
-    });
-  };
-
-  const updateExistingCategory = (category: CategoryType): void => {
-    post("/api/category/update", category).then((res) => {
-      updateCategory(res);
-    });
-  };
-
   const submitModalForm = (event) => {
     let newCategory: CategoryType = {
       ...props.form.values,
@@ -48,9 +35,9 @@ const CategoryModal = (props: CategoryModalProps) => {
 
     if (props.editState.state === "editing") {
       // Use existing uuid when editing
-      updateExistingCategory({ ...newCategory, uuid: props.editState.category.uuid });
+      updateCategory({ ...newCategory, uuid: props.editState.category.uuid });
     } else {
-      addNewCategory(newCategory);
+      addCategory(newCategory);
     }
     props.setEditState({ state: "closed", category: null });
   };

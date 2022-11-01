@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { IconTrash, IconCopy } from "@tabler/icons";
-import { post } from "../../../utilities";
 import CategoryItem from "../categories/CategoryItem";
 import DateItem from "../app/DateItem";
 import { DataTable, DataTableSortStatus } from "mantine-datatable";
 import sortBy from "lodash/sortBy";
 import { Text } from "@mantine/core";
 import { useTransactions } from "../transactions/TransactionsContext";
-import { UseFormReturnType } from "@mantine/form";
+import { useCategories } from "../categories/CategoriesContext";
 
 type TransactionsTableProps = {
   copyTransactionToForm: (transaction: TransactionType) => void;
@@ -18,6 +17,7 @@ type TransactionsTableProps = {
  */
 const TransactionsTable = (props: TransactionsTableProps) => {
   const { transactions, deleteTransaction, fetching } = useTransactions();
+  const { getCategoryByID } = useCategories();
   const [localTransactions, setLocalTransactions] = useState<TransactionType[]>([]);
   const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
     columnAccessor: "date",
@@ -76,7 +76,9 @@ const TransactionsTable = (props: TransactionsTableProps) => {
             width: 160,
             accessor: "category",
             sortable: true,
-            render: ({ category }) => <CategoryItem categoryId={category}></CategoryItem>,
+            render: ({ category }) => (
+              <CategoryItem category={getCategoryByID(category)}></CategoryItem>
+            ),
           },
 
           // Column: Date

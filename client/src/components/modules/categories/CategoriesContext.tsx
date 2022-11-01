@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useMemo } from "react";
-import { get } from "../../../utilities";
+import { get, post } from "../../../utilities";
+import create from "zustand";
 
 // https://www.youtube.com/watch?v=yoxrgfK0JHc
 
@@ -12,11 +13,11 @@ export const unassignedCategory: CategoryType = {
 };
 
 export const initialCategoriesValues = {
-  categories: [],
+  categories: Array<CategoryType>(),
+  budgetTotalPerType: new Map<string, number>(),
   addCategory: (newCategory: CategoryType) => {},
-  removeCategory: (oldCategory: CategoryType) => {},
+  removeCategory: (oldCategory: CategoryType, sendToCategory: CategoryType) => {},
   updateCategory: (newCategory: CategoryType) => {},
-  budgetTotalPerType: new Map(),
   getCategoryByID: (uuid: string): CategoryType => {
     return unassignedCategory;
   },
@@ -28,43 +29,64 @@ type CategoriesProviderProps = {
   children: React.ReactNode;
 };
 
+/**
+ * Manages global categories state and management helpers. Categories don't change
+ * very often and are crucial to most components, so React Context has been used.
+ */
 export const CategoriesProvider: React.FC<CategoriesProviderProps> = ({ children }) => {
   const [categories, setCategories] = useState<CategoryType[]>([]);
-  const [budgetTotalPerType, setBudgetTotalPerType] = useState(new Map());
-
-  const [categoriesByID, setCategoriesByID] = useState(new Map());
+  const [budgetTotalPerType, setBudgetTotalPerType] = useState(new Map<string, number>());
+  const [categoriesByID, setCategoriesByID] = useState(new Map<string, CategoryType>());
 
   const addCategory = (newCategory: CategoryType) => {
-    setCategories((categories) => [...categories, newCategory]);
+    post("/api/category/add", newCategory).then((res) => {
+      setCategories((categories) => [...categories, newCategory]);
+    });
   };
 
-  const removeCategory = (oldCategory: CategoryType) => {
-    setCategories((categories) => categories.filter((c) => c.uuid !== oldCategory.uuid));
+  const removeCategory = (oldCategory: CategoryType, sendToCategory: CategoryType) => {
+    post("api/category/delete", {
+      uuidToDelete: oldCategory.uuid,
+      uuidToReplace: sendToCategory.uuid,
+    }).then((res) => {
+      setCategories((categories) => categories.filter((c) => c.uuid !== oldCategory.uuid));
+    });
   };
 
   const updateCategory = (newCategory: CategoryType) => {
-    setCategories(
-      categories.map((c) => {
-        return c.uuid === newCategory.uuid ? newCategory : c;
-      })
-    );
+    post("/api/category/update", newCategory).then((res) => {
+      setCategories(
+        categories.map((c) => {
+          return c.uuid === newCategory.uuid ? newCategory : c;
+        })
+      );
+    });
   };
 
   const getCategoryByID = (uuid: string): CategoryType => {
     return categoriesByID.get(uuid);
   };
 
+  /**
+   * Fetch database categories on startup
+   */
   useEffect(() => {
     get("api/categories", {}).then((categories) => {
       setCategories(categories);
     });
   }, []);
 
+  /**
+   * When categories change, recalculate and cache the budget totals
+   * per category type (monthly, yearly), and the uuid->category map
+   */
   useEffect(() => {
+    // Update uuid -> category map
     let catMap = new Map();
     categories.forEach((c) => catMap.set(c.uuid, c));
     setCategoriesByID(catMap);
 
+    // Update type -> total map
     let newBudgetTotals = new Map();
     categories.forEach((c) => {
       if (newBudgetTotals.has(c.type)) {
@@ -80,9 +102,9 @@ export const CategoriesProvider: React.FC<CategoriesProviderProps> = ({ children
     <CategoriesContext.Provider
       value={{
         categories,
+        budgetTotalPerType,
         addCategory,
         updateCategory,
-        budgetTotalPerType,
         getCategoryByID,
         removeCategory,
       }}

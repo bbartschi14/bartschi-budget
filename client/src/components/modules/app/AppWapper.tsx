@@ -46,7 +46,6 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children, selectedTab, setTab }
               <Text color={"blue"} weight={"bold"}>
                 Bartschi Budget
               </Text>{" "}
-              {/*@ts-ignore}*/}
               <MonthSelector
                 value={budgetMonth}
                 setValue={setBudgetMonth}

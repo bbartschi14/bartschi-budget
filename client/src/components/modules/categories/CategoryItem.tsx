@@ -1,31 +1,19 @@
-import { Badge, Center, Paper, Text } from "@mantine/core";
-import React, { useState, useEffect } from "react";
-import { useCategories, unassignedCategory } from "./CategoriesContext";
+import { Badge, Center } from "@mantine/core";
 
 type CategoryItemProps = {
-  categoryId: string;
+  category: CategoryType;
 };
 
 const CategoryItem = (props: CategoryItemProps) => {
-  const { categories } = useCategories();
-  const [categoryData, setCategoryData] = useState<CategoryType>(unassignedCategory);
-
-  useEffect(() => {
-    let foundCategory = categories.find((c) => c.uuid == props.categoryId);
-    if (foundCategory !== undefined) {
-      setCategoryData(foundCategory);
-    }
-  }, [categories, props.categoryId]);
-
   return (
     <Center>
       <Badge
-        color={categoryData.color}
+        color={props.category.color}
         size="md"
         styles={{ root: { boxShadow: "#CCCCCC 1px 1px 2px" } }}
         variant="light"
       >
-        {categoryData.name}
+        {props.category.name}
       </Badge>
     </Center>
   );

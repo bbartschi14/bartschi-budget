@@ -3,6 +3,7 @@ import { useMantineTheme, Text, Table, Box, LoadingOverlay } from "@mantine/core
 import React, { useEffect, useState } from "react";
 import CategoryItem from "../categories/CategoryItem";
 import CSS from "csstype";
+import { useCategories } from "../categories/CategoriesContext";
 
 const baseNumberStyle: CSS.Properties = { width: "100px", textAlign: "center" };
 
@@ -39,6 +40,8 @@ const TotalsItem = ({ total }) => {
 
 const TotalsTable = () => {
   const { totals, categoryType, fetching } = useTransactions();
+  const { getCategoryByID } = useCategories();
+
   const theme = useMantineTheme();
 
   return (
@@ -82,7 +85,7 @@ const TotalsTable = () => {
             return c.type == categoryType ? (
               <tr key={c.uuid}>
                 <td>
-                  <CategoryItem categoryId={c.uuid}></CategoryItem>
+                  <CategoryItem category={getCategoryByID(c.uuid)}></CategoryItem>
                 </td>
                 <TotalsItem total={c.total} />
                 <TotalsRemainingItem size={theme.fontSizes.sm} remaining={c.remaining} />
