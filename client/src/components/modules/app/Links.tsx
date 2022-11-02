@@ -1,7 +1,6 @@
 import React from "react";
-import { IconGitPullRequest, IconAlertCircle, IconMessages } from "@tabler/icons";
+import { IconGitPullRequest, IconAlertCircle, IconChartDonut3 } from "@tabler/icons";
 import { ThemeIcon, UnstyledButton, Group, Text } from "@mantine/core";
-import { Link } from "react-router-dom";
 
 interface MainLinkProps {
   icon: React.ReactNode;
@@ -44,6 +43,7 @@ function MainLink({ icon, color, label, isSelected, setTab, index }: MainLinkPro
 const data = [
   { icon: <IconGitPullRequest size={16} />, color: "blue", label: "Transactions" },
   { icon: <IconAlertCircle size={16} />, color: "blue", label: "Budget" },
+  { icon: <IconChartDonut3 size={16} />, color: "blue", label: "Graphs" },
 ];
 
 export const MainLinks = (props) => {

@@ -218,6 +218,7 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
           uuid: foundCategory.uuid,
           name: foundCategory.name,
           type: foundCategory.type,
+          color: foundCategory.color,
           total: v,
           remaining: foundCategory.monthlyBudget - v,
         };
