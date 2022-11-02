@@ -16,13 +16,17 @@
 |
 */
 
-const path = require("path");
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const entryFile = path.resolve(__dirname, "client", "src", "index.js");
 const outputDir = path.resolve(__dirname, "client", "dist");
 
-const webpack = require("webpack");
+import webpack from "webpack";
 
-module.exports = {
+export default {
   entry: ["@babel/polyfill", entryFile],
   output: {
     path: outputDir,
