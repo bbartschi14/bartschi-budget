@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const CategorySchema = new mongoose.Schema({
   uuid: String,
@@ -9,4 +9,4 @@ const CategorySchema = new mongoose.Schema({
 });
 
 // compile model from schema
-module.exports = mongoose.model("category", CategorySchema);
+export default mongoose.model("category", CategorySchema);

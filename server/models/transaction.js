@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const TransactionSchema = new mongoose.Schema({
   uuid: String,
@@ -9,4 +9,4 @@ const TransactionSchema = new mongoose.Schema({
 });
 
 // compile model from schema
-module.exports = mongoose.model("transaction", TransactionSchema);
+export default mongoose.model("transaction", TransactionSchema);

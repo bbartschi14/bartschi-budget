@@ -11,7 +11,8 @@
     "skipLibCheck": true
   },
   "include": [
-    "./client/"
+    "./client/",
+    "./server/"
   ],
   "exclude": [
     "./node_modules"

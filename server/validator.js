@@ -1,5 +1,5 @@
-const fs = require("fs");
-const net = require("net");
+import fs from "fs";
+import net from "net";
 
 /**
  * Provides some basic checks to make sure you've
@@ -31,7 +31,7 @@ function checkHotLoader() {
   });
 }
 
-module.exports = {
+export default {
   checkSetup: () => {
     if (!fs.existsSync("./node_modules/")) {
       throw new NodeSetupError(

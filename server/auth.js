@@ -1,5 +1,5 @@
-const { OAuth2Client } = require("google-auth-library");
-const User = require("./models/user");
+import { OAuth2Client } from "google-auth-library";
+import User from "./models/user.js";
 
 // create a new OAuth client used to verify google sign-in
 const CLIENT_ID = "121479668229-t5j82jrbi9oejh7c8avada226s75bopn.apps.googleusercontent.com";
@@ -63,7 +63,7 @@ function ensureLoggedIn(req, res, next) {
   next();
 }
 
-module.exports = {
+export default {
   login,
   logout,
   populateCurrentUser,

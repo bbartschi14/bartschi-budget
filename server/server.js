@@ -15,20 +15,22 @@
 
 // validator runs some basic checks to make sure you've set everything up correctly
 // this is a tool provided by staff, so you don't need to worry about it
-const validator = require("./validator");
+import validator from "./validator.js";
 validator.checkSetup();
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
 //import libraries needed for the webserver to work!
-const http = require("http");
-const bodyParser = require("body-parser"); // allow node to automatically parse POST body requests as JSON
-const express = require("express"); // backend framework for our node server.
-const session = require("express-session"); // library that stores info about each connected user
-const mongoose = require("mongoose"); // library to connect to MongoDB
-const path = require("path"); // provide utilities for working with file and directory paths
+import http from "http";
+import bodyParser from "body-parser"; // allow node to automatically parse POST body requests as JSON
+import express from "express"; // backend framework for our node server.
+import session from "express-session"; // library that stores info about each connected user
+import mongoose from "mongoose"; // library to connect to MongoDB
+import path from "path"; // provide utilities for working with file and directory paths
+import { fileURLToPath } from "url";
 
-const api = require("./api");
-const auth = require("./auth");
+import api from "./api.js";
+import auth from "./auth.js";
 
 // Server configuration below
 const isMongoSetupComplete = true;
@@ -70,6 +72,8 @@ app.use(auth.populateCurrentUser);
 // connect user-defined routes
 app.use("/api", api);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // load the compiled react files, which will serve /index.html and /bundle.js
 const reactPath = path.resolve(__dirname, "..", "client", "dist");
 app.use(express.static(reactPath));

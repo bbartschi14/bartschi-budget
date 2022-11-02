@@ -7,18 +7,19 @@
 |
 */
 
-const express = require("express");
+import express from "express";
 
 // import authentication library
-const auth = require("./auth");
-require("dotenv").config();
+import auth from "./auth.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 // api endpoints: all these paths will be prefixed with "/api/"
 const router = express.Router();
 
 // MongoDB Models
-const Transaction = require("./models/transaction");
-const Category = require("./models/category");
+import Transaction from "./models/transaction.js";
+import Category from "./models/category.js";
 
 router.post("/transaction", (req, res) => {
   const newTransaction = new Transaction({
@@ -94,4 +95,4 @@ router.all("*", (req, res) => {
   res.status(404).send({ msg: "API route not found" });
 });
 
-module.exports = router;
+export default router;

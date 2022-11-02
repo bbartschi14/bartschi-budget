@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
   name: String,
@@ -6,4 +6,4 @@ const UserSchema = new mongoose.Schema({
 });
 
 // compile model from schema
-module.exports = mongoose.model("user", UserSchema);
+export default mongoose.model("user", UserSchema);
