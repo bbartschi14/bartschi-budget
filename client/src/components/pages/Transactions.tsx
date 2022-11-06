@@ -24,12 +24,15 @@ const Transactions = () => {
 
   const descriptionInput = useRef<HTMLInputElement>();
 
+  const getDaysInMonth = (year, month) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
   // Keep date state updated based on year and month states
   useEffect(() => {
-    newTransactionForm.setFieldValue(
-      "date",
-      new Date(budgetMonth.year, budgetMonth.month, newTransactionForm.values.date.getDate())
-    );
+    let newDay = newTransactionForm.values.date.getDate();
+    newDay = Math.min(getDaysInMonth(budgetMonth.year, budgetMonth.month), newDay);
+    newTransactionForm.setFieldValue("date", new Date(budgetMonth.year, budgetMonth.month, newDay));
   }, [budgetMonth]);
 
   /**
@@ -44,7 +47,11 @@ const Transactions = () => {
 
   return (
     <Stack>
-      <TransactionForm form={newTransactionForm} descriptionInput={descriptionInput} />
+      <TransactionForm
+        budgetMonth={budgetMonth}
+        form={newTransactionForm}
+        descriptionInput={descriptionInput}
+      />
       <Divider my="sm" variant="dashed" />
       <TransactionsTable copyTransactionToForm={copyTransactionToForm} />
 

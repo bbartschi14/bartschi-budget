@@ -19,6 +19,7 @@ import {
 type TransactionFormProps = {
   descriptionInput: React.MutableRefObject<HTMLInputElement>;
   form: UseFormReturnType<TransactionType, (values: TransactionType) => TransactionType>;
+  budgetMonth: any;
 };
 
 const TransactionForm = (props: TransactionFormProps) => {
@@ -52,6 +53,10 @@ const TransactionForm = (props: TransactionFormProps) => {
   const handleKeyDownInForm = (event) => {
     event.stopPropagation();
     if (event.key === "Enter") postTransactionForm();
+  };
+
+  const getDayMax = () => {
+    return new Date(props.budgetMonth.year, props.budgetMonth.month + 1, 0).getDate();
   };
 
   return (
@@ -136,9 +141,11 @@ const TransactionForm = (props: TransactionFormProps) => {
           }
           value={props.form.values.date.getDate()}
           onChange={(val) => {
+            let clamped = Math.max(1, val);
+            clamped = Math.min(getDayMax(), val);
             props.form.setFieldValue(
               "date",
-              new Date(props.form.values.date.getFullYear(), props.form.values.date.getMonth(), val)
+              new Date(props.budgetMonth.year, props.budgetMonth.month, clamped)
             );
           }}
           hideControls
@@ -149,6 +156,8 @@ const TransactionForm = (props: TransactionFormProps) => {
               textAlign: "center",
             },
           })}
+          min={1}
+          max={getDayMax()}
         />
         <ActionIcon
           tabIndex={-1}

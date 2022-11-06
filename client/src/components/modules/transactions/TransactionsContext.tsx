@@ -27,6 +27,8 @@ type TransactionsProviderProps = {
   children: React.ReactNode;
 };
 
+const successfulNotificationColor = "green.5";
+
 export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ children }) => {
   const [budgetMonth, setBudgetMonth] = useState<MonthSelectorState>({ month: 0, year: 2022 });
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
@@ -66,7 +68,7 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
     showNotification({
       id: `added_${newTransaction.uuid}`,
       icon: <IconCheck size={18} />,
-      color: category?.color,
+      color: successfulNotificationColor,
       title: (
         <Group position="apart">
           <Group spacing={4}>
@@ -120,7 +122,7 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
     showNotification({
       id: `deleted_${transaction.uuid}`,
       icon: <IconTrash size={18} />,
-      color: category?.color,
+      color: successfulNotificationColor,
       title: (
         <Group position="apart">
           <Group spacing={4}>
