@@ -5,6 +5,7 @@ import { useCategories } from "../categories/CategoriesContext";
 import { showNotification, hideNotification } from "@mantine/notifications";
 import { IconCheck, IconCornerUpLeft, IconTrash, IconX } from "@tabler/icons";
 import { ActionIcon, Group, Space, Text, Tooltip } from "@mantine/core";
+import { useLocalStorage } from "@mantine/hooks";
 
 // https://www.youtube.com/watch?v=yoxrgfK0JHc
 
@@ -19,6 +20,8 @@ export const initialTransactionsValues = {
   totals: { categories: [], totalPerType: new Map(), totalRemainingPerType: new Map() },
   categoryType: "Monthly",
   setCategoryType: (_) => {},
+  user: "Ben",
+  setUser: (_) => {},
 };
 
 export const TransactionsContext = createContext(initialTransactionsValues);
@@ -40,6 +43,8 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
     totalRemainingPerType: new Map(),
   });
   const { categories } = useCategories();
+
+  const [user, setUser] = useLocalStorage({ key: "user", defaultValue: "Ben" });
 
   useEffect(() => {
     setBudgetMonth({ month: dayjs().month(), year: dayjs().year() });
@@ -166,6 +171,7 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
   };
 
   const addTransaction = (newTransaction: TransactionType) => {
+    newTransaction.user = user;
     post("/api/transaction", newTransaction)
       .then((res) => {
         showSuccessfulAddNotification(newTransaction);
@@ -262,6 +268,8 @@ export const TransactionsProvider: React.FC<TransactionsProviderProps> = ({ chil
         setCategoryType,
         addTransaction,
         deleteTransaction,
+        user,
+        setUser,
       }}
     >
       {children}

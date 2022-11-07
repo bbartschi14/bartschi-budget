@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { IconTrash, IconCopy } from "@tabler/icons";
+import { IconTrash, IconCopy, IconTableOptions, IconUsers } from "@tabler/icons";
 import CategoryItem from "../categories/CategoryItem";
 import DateItem from "../app/DateItem";
 import { DataTable, DataTableSortStatus } from "mantine-datatable";
 import sortBy from "lodash/sortBy";
-import { Text } from "@mantine/core";
+import { ActionIcon, Checkbox, Menu, Text } from "@mantine/core";
 import { useTransactions } from "../transactions/TransactionsContext";
 import { useCategories } from "../categories/CategoriesContext";
 
@@ -23,6 +23,7 @@ const TransactionsTable = (props: TransactionsTableProps) => {
     columnAccessor: "date",
     direction: "asc",
   });
+  const [showUser, setShowUser] = useState<boolean>(false);
 
   // Table hooks
   const reSort = (updatedTransactions) => {
@@ -36,7 +37,7 @@ const TransactionsTable = (props: TransactionsTableProps) => {
   }, [sortStatus, transactions]);
 
   return (
-    <div>
+    <div style={{ position: "relative" }}>
       <DataTable
         // Styling
         withBorder
@@ -88,6 +89,14 @@ const TransactionsTable = (props: TransactionsTableProps) => {
             sortable: true,
             render: ({ date }) => <DateItem date={date}></DateItem>,
           },
+
+          // Column: User
+          {
+            width: 50,
+            accessor: "user",
+            sortable: true,
+            hidden: !showUser,
+          },
         ]}
         // Use our transactions uuids for React
         idAccessor={"uuid"}
@@ -116,6 +125,27 @@ const TransactionsTable = (props: TransactionsTableProps) => {
           ],
         }}
       />
+      <Menu shadow="md" width={200}>
+        <Menu.Target>
+          <ActionIcon
+            style={{ position: "absolute", left: "-4px", top: "-4px", zIndex: 100 }}
+            variant={"filled"}
+          >
+            <IconTableOptions />
+          </ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Label>Table Options</Menu.Label>
+          <Menu.Item closeMenuOnClick={false} icon={<IconUsers size={14} />}>
+            <Checkbox
+              label={"Show user"}
+              labelPosition={"left"}
+              checked={showUser}
+              onChange={(event) => setShowUser(event.currentTarget.checked)}
+            />
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     </div>
   );
 };

@@ -6,6 +6,9 @@ import {
   Header as MantineHeader,
   Navbar,
   ScrollArea,
+  Group,
+  NativeSelect,
+  Tooltip,
 } from "@mantine/core";
 import { MainLinks } from "./Links";
 import MonthSelector from "./MonthSelector";
@@ -19,7 +22,8 @@ type AppWrapperProps = {
 };
 
 const AppWrapper: React.FC<AppWrapperProps> = ({ children, selectedTab, setTab }) => {
-  const { budgetMonth, setBudgetMonth, categoryType, setCategoryType } = useTransactions();
+  const { budgetMonth, setBudgetMonth, categoryType, setCategoryType, user, setUser } =
+    useTransactions();
 
   return (
     <MantineProvider withGlobalStyles withNormalizeCSS>
@@ -43,9 +47,18 @@ const AppWrapper: React.FC<AppWrapperProps> = ({ children, selectedTab, setTab }
                 justifyContent: "space-between",
               }}
             >
-              <Text color={"blue"} weight={"bold"}>
-                Bartschi Budget
-              </Text>{" "}
+              <Group>
+                <Text color={"blue"} weight={"bold"}>
+                  Bartschi Budget
+                </Text>
+                <Tooltip label={"Current User"} position={"right"}>
+                  <NativeSelect
+                    data={["Ben", "Amanda"]}
+                    value={user}
+                    onChange={(event) => setUser(event.currentTarget.value)}
+                  />
+                </Tooltip>
+              </Group>
               <MonthSelector
                 value={budgetMonth}
                 setValue={setBudgetMonth}

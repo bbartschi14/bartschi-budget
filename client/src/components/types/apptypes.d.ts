@@ -8,6 +8,7 @@ type CategoryType = {
 
 type TransactionType = {
   uuid?: string;
+  user?: string; // person who submitted this transaction
   name: string;
   category: string; //uuid
   amount: number;

@@ -24,6 +24,7 @@ import Category from "./models/category.js";
 router.post("/transaction", (req, res) => {
   const newTransaction = new Transaction({
     uuid: req.body.uuid,
+    user: req.body.user,
     name: req.body.name,
     amount: req.body.amount,
     category: req.body.category,
